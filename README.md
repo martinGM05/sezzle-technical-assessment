@@ -16,7 +16,12 @@ cd sezzle-technical-assessment
 docker compose up --build
 ```
 
-Open **http://localhost:8088** (or **http://127.0.0.1:8088**).
+Open **http://127.0.0.1:8088**.
+
+**Troubleshooting:** If `localhost` returns HTTP 400 because of oversized request
+headers or cookies, use **http://127.0.0.1:8088** or clear your browser's
+`localhost` cookies.
+
 To shut down, press **Ctrl+C**, then remove the containers and networks:
 
 ```bash
