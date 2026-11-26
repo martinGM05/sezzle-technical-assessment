@@ -1,0 +1,27 @@
+# Local AI tooling metadata
+.atl/
+
+# Frontend dependencies and generated artifacts
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+frontend/*.tsbuildinfo
+
+# Backend generated artifacts
+backend/coverage.out
+backend/*.test
+backend/bin/
+
+# Logs and environment files
+*.log
+.env
+.env.*
+!.env.example
+
+# Operating system and editor files
+.DS_Store
+.vscode/
+.idea/
+
+# Package-manager local store
+.pnpm-store/
