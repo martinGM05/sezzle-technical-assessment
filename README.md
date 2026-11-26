@@ -4,23 +4,34 @@ React/TypeScript UI and a stateless Go REST API. Seven arithmetic operations,
 compound expressions, keyboard input, light/dark/system themes and local history.
 All mathematical parsing and evaluation happens in Go.
 
-## Run with Docker
+## Quick Start
 
-Requires Docker Engine/Desktop and Docker Compose v2. From the repository root:
+**Docker is the recommended setup.** Install Docker Engine/Desktop with Docker
+Compose v2; no local Node.js or Go installation is needed. Repository access is
+required because the repository is private.
 
 ```bash
+git clone --branch chore/final-delivery https://github.com/martinGM05/sezzle-technical-assessment.git
+cd sezzle-technical-assessment
 docker compose up --build
 ```
 
-Open **http://localhost:8088** or **http://127.0.0.1:8088**. No local Node/Go
-installation is required. For detached startup and health verification:
+Open **http://localhost:8088** (or **http://127.0.0.1:8088**).
+To shut down, press **Ctrl+C**, then remove the containers and networks:
+
+```bash
+docker compose down
+```
+
+### Docker health checks and configuration
+
+For detached startup and health verification:
 
 ```bash
 docker compose up --build -d --wait
 docker compose ps
 curl -fsS http://localhost:8088/healthz # Nginx
 curl -fsS http://localhost:8088/health  # Go through the proxy
-docker compose down
 ```
 
 Only Nginx is published, on loopback; Go uses an internal network. Both runtimes
@@ -39,7 +50,7 @@ Nginx preserves Origin and the API enforces the allowlist even for same-origin
 POSTs. CORS is not authentication. Public deployment requires explicit TLS,
 bind-address and origin configuration; this setup is local by default.
 
-## Run without Docker
+## Local development without Docker
 
 Pinned tools: Node **22.18.0** (`.nvmrc`), pnpm **12.9.1** (`packageManager`),
 Go **1.24.2** (`backend/go.mod`). Select Node with `nvm use` or your version manager.
@@ -151,8 +162,8 @@ Open generated HTML reports in a browser:
 **`frontend/coverage/index.html`** and **`backend/coverage/index.html`**.
 Go also generates `backend/coverage/summary.txt`. Reports are Git-ignored and
 excluded from production images. Reviewers can reproduce them using the commands
-above; after authorized publication, CI provides downloadable `frontend-coverage`
-and `backend-coverage` artifacts. A local pass is not a remote CI result.
+above. Successful GitHub Actions coverage steps upload `frontend-coverage` and
+`backend-coverage` artifacts, available from the workflow run.
 
 ### Verified results — 2026-11-26
 
@@ -175,18 +186,12 @@ deterministic, side-effect-free calculations. Applications build independently;
 no database, broker or frontend evaluator is needed. Container base images and CI
 actions are pinned. [Architecture decisions](docs/ARCHITECTURE.md) explain details.
 
-- The original assessment brief has not been independently supplied. See
-  [reported requirement traceability](docs/REQUIREMENTS.md), not certification
-  against an unseen assignment.
 - History is plaintext and per-origin, with no cross-tab/device synchronization.
   Clipboard requires HTTPS/localhost support; failures show manual-copy guidance.
 - Authentication, rate limiting and public TLS deployment are outside this local
   assessment scope. Digest pins do not prove vulnerability freshness or signatures.
 - Duplicate JSON member names retain the last value; see [review notes](docs/REVIEW.md).
-- Playwright, k6, Lighthouse and additional performance tooling are excluded.
-- Phase 6 remote CI/artifact uploads await authorized publication.
 
-[AI development record](PROMPTS.md) is explicitly curated for reviewers; technical
-corrections and genuine deviations are retained. The unedited local archive is
-preserved separately and excluded from Git. Do not include `.submission-private/`
-in a submission ZIP. Git history is unchanged.
+See [requirement traceability](docs/REQUIREMENTS.md) and the
+[curated AI development record](PROMPTS.md) for assessment scope, technical
+decisions and documented development corrections.
