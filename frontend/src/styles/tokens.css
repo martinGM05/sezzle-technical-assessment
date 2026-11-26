@@ -1,0 +1,40 @@
+:root {
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+  --text-sm: 0.875rem;
+  --text-body: 1rem;
+  --text-heading: 1.125rem;
+  --text-expression: clamp(1.125rem, 3vw, 1.5rem);
+  --text-result: clamp(2.5rem, 8vw, 4.5rem);
+  --text-key: clamp(1.25rem, 4vw, 1.75rem);
+  --calculator-key-height: 3rem;
+  --calculator-max-width: 58rem;
+  --calculator-title-size: clamp(1.5rem, 4vw, 2rem);
+  --calculator-result-size: clamp(2.25rem, 6vw, 3.5rem);
+  --calculator-badge-size: 3rem;
+  --calculator-badge-icon-size: 2rem;
+  --text-title: clamp(2rem, 5vw, 3rem);
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --radius-control: 0.75rem;
+  --radius-panel: 1.25rem;
+  --radius-shell: 1.75rem;
+  --radius-round: 50%;
+  --control-size: 2.75rem;
+  --icon-size: 1.25rem;
+  --focus-width: 3px;
+  --focus-offset: 3px;
+  --content-width: 68rem;
+  --motion-fast: 150ms ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 0s;
+  }
+}
