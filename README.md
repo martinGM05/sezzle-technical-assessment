@@ -143,9 +143,17 @@ external supervisor sends SIGKILL. Docker Compose is not required for the backen
 ## Current scope
 
 Phase 2 provides the Go calculator API, contract, behavioral tests, lifecycle,
-backend container and quality pipeline. The frontend remains the Phase 1 shell;
-calculator UI, full-stack end-to-end tests and performance work are not delivered
-here. No database, broker, authentication or distributed infrastructure is needed.
+backend container and quality pipeline. The frontend now includes the design
+system, controlled calculator UI and collapsible history UI. Calculator controls
+edit text only; equals reports that backend integration is pending. History starts
+empty and no sample entries are injected. History components expose reuse, copy,
+delete and confirmed-clear callbacks; copy is disabled without a supplied handler.
+Dates are displayed in the user's locale and time zone. History shows 20 entries
+at a time, with a button to reveal more.
+
+Frontend evaluation, parsing, API/clipboard integration, history persistence,
+full-stack end-to-end tests and performance work remain outside the delivered UI
+scope. No database, broker, authentication or distributed infrastructure is needed.
 
 See [requirements](docs/REQUIREMENTS.md), [architecture](docs/ARCHITECTURE.md) and
 [non-blocking review findings](docs/REVIEW.md). Assessment requirements remain

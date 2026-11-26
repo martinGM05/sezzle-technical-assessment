@@ -1,0 +1,17 @@
+.history-empty-state {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-3);
+  color: var(--color-muted);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.history-empty-state h3 {
+  color: var(--color-text);
+  font-size: var(--text-heading);
+}
+.history-empty-state__icon {
+  color: var(--color-accent);
+  font-size: var(--text-key);
+}

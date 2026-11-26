@@ -1,0 +1,11 @@
+.history-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-width: 0;
+  text-align: start;
+  overflow-wrap: anywhere;
+  font-size: var(--text-heading);
+}

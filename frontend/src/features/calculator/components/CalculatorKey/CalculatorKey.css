@@ -1,0 +1,12 @@
+.calculator-key {
+  min-width: 0;
+  min-height: var(--calculator-key-height);
+  padding: var(--space-2);
+  font-size: var(--text-key);
+  overflow-wrap: anywhere;
+  box-shadow: var(--shadow-control);
+}
+.calculator-key--operation {
+  background: var(--color-info-surface);
+  color: var(--color-info);
+}

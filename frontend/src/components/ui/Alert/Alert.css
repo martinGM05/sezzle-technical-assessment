@@ -1,0 +1,20 @@
+.alert {
+  padding: var(--space-4);
+  border: 1px solid currentColor;
+  border-radius: var(--radius-control);
+  background: var(--color-info-surface);
+  color: var(--color-info);
+  overflow-wrap: anywhere;
+}
+.alert--success {
+  background: var(--color-success-surface);
+  color: var(--color-success);
+}
+.alert--warning {
+  background: var(--color-warning-surface);
+  color: var(--color-warning);
+}
+.alert--error {
+  background: var(--color-danger-surface);
+  color: var(--color-danger);
+}

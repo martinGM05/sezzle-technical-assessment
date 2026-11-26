@@ -1195,3 +1195,540 @@ Report the commit hash, push result, and Pull Request creation URL.
 
 Do not merge or begin Phase 3.
 ```
+
+## Phase 3.1 — literal user prompt
+
+````text
+# Phase 3.1 — Design System and Shared Components
+
+Branch: `feat/calculator-ui`.
+
+Follow the existing AGENTS.md guidelines and previously approved engineering standards.
+
+## Objective
+
+Establish the frontend design system and reusable UI components using the approved visual references:
+
+- `docs/design/mobile-reference.png`
+- `docs/design/desktop-reference.png`
+
+Inspect both images before proposing the implementation plan.
+
+Use them as the visual reference for colors, typography, spacing, component styling, visual hierarchy, and responsive layout.
+
+Prioritize mobile design and progressively adapt it to desktop while maintaining a consistent visual identity.
+
+Do not modify or delete the reference images.
+
+## Styling
+
+- Use plain CSS exclusively.
+- No Tailwind, CSS-in-JS, external UI frameworks, or component libraries.
+- Follow a strict mobile-first approach.
+- Use CSS Grid, Flexbox, and min-width media queries.
+- Centralize design tokens using CSS custom properties.
+- Use consistent BEM class naming.
+- Support light, dark, and system themes.
+- Ensure accessible contrast, visible focus states, touch-friendly controls, and reduced-motion support.
+- Avoid unnecessary hardcoded values, duplicated styles, and excessive use of !important.
+
+## Folder structure
+
+Follow a feature-based architecture with shared UI components.
+
+Each component must colocate its implementation, styles, and tests.
+
+Proposed structure:
+
+```text
+frontend/src/
+├── components/
+│   └── ui/
+│       ├── Button/
+│       │   ├── Button.tsx
+│       │   ├── Button.css
+│       │   └── Button.test.tsx
+│       ├── IconButton/
+│       ├── Alert/
+│       └── ThemeToggle/
+├── styles/
+│   ├── reset.css
+│   ├── tokens.css
+│   ├── themes.css
+│   └── global.css
+├── App.tsx
+└── main.tsx
+```
+
+Create files and directories only when needed.
+
+Keep shared components independent of calculator-specific business logic.
+
+## Shared components
+
+Implement:
+
+- Button
+- IconButton
+- Alert
+- ThemeToggle
+
+Use native HTML elements, strictly typed props, composition, and accessible semantics.
+
+Components must be reusable, configurable, and independent.
+
+Avoid premature abstractions and unnecessary dependencies.
+
+## TDD — Highest implementation priority
+
+Complete each component individually before proceeding to the next.
+
+For each component:
+
+1. Define its behavioral test matrix.
+2. Write the tests before implementing the component.
+3. Execute the tests and observe RED.
+4. Implement the minimum functionality required for GREEN.
+5. Refactor for readability and maintainability.
+6. Run regression tests.
+
+Use the existing Vitest and React Testing Library configuration.
+
+Do not implement multiple components before writing their corresponding tests.
+
+Never fabricate TDD evidence or test results.
+
+## Component test matrix
+
+Button:
+
+- Rendering and accessible name.
+- Click interactions.
+- Visual variants.
+- Disabled behavior.
+- Keyboard interaction.
+- Native HTML attributes.
+
+IconButton:
+
+- Accessible label.
+- Icon rendering.
+- Click interactions.
+- Disabled behavior.
+- Keyboard interaction.
+
+Alert:
+
+- Message rendering.
+- Supported variants.
+- Accessible status or alert semantics.
+
+ThemeToggle:
+
+- Light, dark, and system theme selection.
+- Active theme representation.
+- User interactions.
+- Keyboard accessibility.
+- Accessible labels.
+
+Expand the matrix where meaningful edge cases are identified.
+
+## Test identifiers
+
+Use stable and descriptive `data-testid` attributes where appropriate.
+
+Examples:
+
+- `theme-toggle`
+- `theme-option-light`
+- `theme-option-dark`
+- `theme-option-system`
+
+Prefer semantic queries such as getByRole when they adequately represent user behavior.
+
+Do not couple tests to CSS classes or internal implementation details.
+
+## Code quality
+
+- Strict TypeScript.
+- Avoid any and unnecessary type assertions.
+- Descriptive naming and consistent formatting.
+- Small, cohesive components.
+- Defensive programming and explicit error handling.
+- Meaningful comments for non-obvious decisions.
+- Accessible and maintainable component APIs.
+- No unnecessary dependencies or abstractions.
+
+## Verification
+
+Run the existing frontend quality gates:
+
+- Formatting.
+- Linting.
+- Type checking.
+- Unit tests.
+- Coverage.
+- Production build.
+
+Report only actual observed results.
+
+## Scope boundaries
+
+Do not implement the calculator business logic, API integration, expression parsing, or history persistence yet.
+
+The future calculator will support seven arithmetic operations, parentheses, complex expressions, calculation history, and keyboard input.
+
+Expression parsing and mathematical evaluation will belong to the Go backend.
+
+Do not modify the backend.
+
+Record this actual prompt in PROMPTS.md.
+
+First, inspect the repository and both reference images.
+
+Present a concise implementation plan containing:
+
+- Design token proposal.
+- Component structure and responsibilities.
+- Behavioral test matrix.
+- Implementation sequence following TDD.
+- Any relevant risks or ambiguities.
+
+Wait for approval before modifying files.
+
+Do not commit or push.
+
+Communicate with me in Spanish. Keep source code, comments, tests, and project documentation in English.
+````
+
+## Phase 3.1 dependency authorization — literal user prompt
+
+```text
+Approved. Add @testing-library/user-event as a development dependency.
+
+Verify compatibility with our pinned toolchain and update the lockfile.
+
+Prefer userEvent for behavioral interactions and semantic queries combined with stable data-testid attributes.
+
+Keep both themes independent of viewport size.
+
+Treat the reference images as visual guidance only, preserving our approved mathematical semantics.
+
+Continue with the concise implementation plan and component test matrix. Record this authorization in PROMPTS.md.
+```
+
+## Phase 3.1 implementation authorization — literal user prompt
+
+```text
+Implement the plan.
+```
+
+### Phase 3.1 execution evidence (assistant notes, not user prompts)
+
+- Installed exact user-event 14.6.13 using Node 22.18.0 and pnpm 12.9.1;
+  frozen-lockfile installation passed with sandbox escalation. Initial sandbox
+  installation failed on store permissions/network access; escalated restore succeeded.
+- Sequential RED: each component test suite failed because its implementation
+  module did not exist. GREEN regression totals: Button 9, IconButton 12,
+  Alert 18, ThemeToggle 24. Each cycle completed before the next component.
+- App integration RED: two new tests could not find theme/preview controls;
+  existing shell test passed. GREEN: 26 tests passed across five files.
+- Formatting, lint, typecheck, coverage and production build passed. Coverage
+  reported 100% of the five exercised App/component files (15 statements,
+  13 branches, 10 functions); this does not measure CSS or browser rendering.
+- Parent repeated all 26 tests successfully. Real-browser checks remain pending:
+  the available computer-use tool reports no browsers. No visual, responsive,
+  zoom or operating-system preference validation is claimed from jsdom tests.
+- Both themes use CSS color-scheme and light-dark(), requiring modern browser
+  support. System preference is resolved by CSS, not a JavaScript listener.
+
+## Phase 3.1 responsive investigation — literal user prompt
+
+```text
+Manual browser verification revealed a responsive layout defect.
+
+At a 360x800 mobile viewport, the design system card overflows horizontally and its right edge is clipped.
+
+- Identify and fix the root cause.
+- Review container widths, box sizing, padding, intrinsic sizing, and Grid/Flexbox constraints.
+- Ensure the layout fits viewports starting at 320px.
+- Preserve consistent horizontal spacing.
+- Do not hide the issue using overflow-x: hidden.
+- Preserve the existing desktop layout and visual identity.
+- Run existing frontend quality gates.
+
+Record this prompt in PROMPTS.md.
+
+Do not implement calculator functionality, commit, or push.
+```
+
+### Responsive investigation evidence (assistant notes)
+
+- Live Chrome at360x800 had layout width360 and scrollWidth360, but visualViewport
+  width324/scale1.111111. Toggling device emulation off/on restored scale1 and
+  the complete card edge without any CSS change. This was pinch-zoom clipping.
+- Separate actual RED in Chromium: root font20px made body min-width20rem equal
+  400px. At320/360 widths scrollWidth was400 and the card ended at380px.
+- Removed only the unnecessary body minimum. Scratch browser GREEN at widths
+  320/360/1280 with root fonts16/20: zero descendants outside the viewport,
+  symmetric gutters, unchanged desktop geometry. At320/font20 the card spans
+  20–300; at360/font20 it spans20–340. Desktop16px remains128–1152.
+- Live Chrome after the source fix confirmed viewport360/scrollWidth360 with
+  root font20px and card20–340. Temporary font override was removed afterward.
+- Existing frontend format/lint/typecheck/test/coverage/build passed under
+  Node22.18.0 and pnpm12.9.1;26 tests passed. Coverage100% of five exercised
+  component files does not cover CSS. Browser probes, not jsdom, established
+  the layout correction. No overflow hiding or calculator behavior was added.
+
+
+## Phase 3.2 — literal user prompt
+
+```text
+# Phase 3.2 — Calculator UI
+
+Phase 3.1 is accepted.
+
+Follow AGENTS.md and the approved visual references in docs/design/.
+
+Implement the calculator UI using the existing design system and shared components.
+
+### Components
+
+- CalculatorDisplay
+- CalculatorKey
+- CalculatorKeypad
+- OperationSelector
+- Calculator
+
+### Requirements
+
+- Plain CSS, BEM, centralized design tokens, and mobile-first responsive design.
+- Support light, dark, and system themes.
+- Follow the approved mobile and desktop references closely.
+- Include all seven arithmetic operations, parentheses, decimal input, clear, backspace, and equals controls.
+- Use controlled components and typed callbacks.
+- Include visual states for loading, errors, disabled controls, and selected operations.
+- Use accessible labels and stable data-testid attributes.
+- Colocate component implementation, CSS, and tests under features/calculator/components/.
+- Prevent horizontal overflow and handle long expressions and results gracefully.
+
+### TDD
+
+Define the behavioral test matrix before implementation.
+
+Complete each component individually through genuine RED-GREEN-REFACTOR iterations.
+
+Test rendering, interactions, callbacks, accessibility, disabled states, and edge cases.
+
+Reuse existing shared components rather than duplicating their functionality.
+
+Do not implement mathematical evaluation, expression parsing, API integration, or history persistence yet.
+
+Replace the temporary design system showcase with the calculator interface.
+
+Run existing frontend quality gates and verify the layout in a real browser.
+
+Record this prompt in PROMPTS.md.
+
+Present a concise implementation plan before making changes.
+
+Do not modify the backend, commit, or push.
+```
+
+## Phase 3.2 approval — literal user prompt
+
+```text
+Yes, implement this plan
+```
+
+### Phase 3.2 execution evidence (assistant notes)
+
+- Defined the component behavioral matrix before implementation in
+  odd/tasks/phase3-calculator-ui.md. Components completed sequentially.
+- Each component first produced a missing-implementation import RED; complete
+  GREEN regression counts were Display32, Key35, Keypad48, Selector58,
+  Calculator63. No retrospective failures were manufactured.
+- App tests against the old showcase produced10 failures/61 passes; the theme
+  characterization passed. After textual-editing integration all71 tests passed.
+- Node22.18.0/pnpm12.9.1: format/lint/typecheck/test/coverage/build passed.
+  Coverage100% of11 exercised files:46statements/37branches/22functions/43lines.
+  This does not establish CSS/browser coverage. Parent repeated71tests successfully.
+- Live Chrome verified7+2 input, selected Addition, equals integration notice,
+  unchanged result placeholder, clear, and theme switching. At360x800 scale1,
+  viewport/scrollWidth360 and card16–344; both edges visible.
+- Cached Chromium rendered80 cases:320/360/768/1280 widths,16/20px root font,
+  light/dark and empty/long/loading/error/disabled states. Long fixtures included
+  200-character expressions and100-digit results. No document/descendant overflow;
+  calculator controls at least44x44; symmetric gutters and desktop sidebar.
+- The browser probe initially assumed media-query rem scaled with an explicit
+  CSS root-font override. Correcting the probe expectation resolved10 false
+  layout-order failures, without production changes. These were not product RED.
+- Rendered fixtures use actual SSR component markup and built CSS; they do not
+  substitute for the separately observed hydrated Chrome interactions.
+- No math evaluation, parser, API calls, history persistence, backend changes,
+  new dependencies, commits or pushes were introduced.
+
+## Calculator visual refinement — literal user prompt
+
+```text
+Refine the current calculator UI based on manual browser feedback.
+
+- Reduce excessive vertical spacing, especially in the header and calculator display.
+- Make the mobile layout more compact while preserving accessible touch targets.
+- Replace oval operation buttons with rounded rectangular pill-style controls.
+- Reduce the desktop calculator max-width and improve its overall proportions.
+- Soften excessive borders while maintaining accessible contrast.
+- Ensure the complete keypad, including equals, is visible without scrolling on typical mobile and desktop viewports whenever space permits.
+- Preserve scrolling and accessibility for smaller viewports and enlarged text.
+- Maintain the approved visual references, existing design tokens, plain CSS, BEM, and mobile-first architecture.
+
+Do not hide overflow or use fixed viewport heights that clip content.
+
+Preserve existing component contracts and behavior.
+
+Verify both themes in a real browser and run all frontend quality gates.
+
+Record this prompt in PROMPTS.md.
+
+Do not add business logic, dependencies, commit, or push.
+```
+
+### Visual refinement evidence (assistant notes)
+
+- Captured real Chromium baseline before CSS edits. At normal text size, Equals
+  ended at924.19px on360x800/390x844 and841.98px on1280x800: those height-fit
+  assertions failed. Mobile operation borders used50% radius (ovals).
+- Changed only CSS/tokens: reduced cumulative spacing and display typography,
+  calculator-specific max width58rem,48px minimum keypad height,12px operation
+  radius, and a separate subtle decorative-border token. Interactive border,
+  focus and text colors remain unchanged; component contracts are untouched.
+- Repeated20 browser cases (five viewport sizes, two font sizes, two themes).
+  Equals now ends at746.98px on360/390 mobile and686.78px ondesktop; typical
+  viewports fit the complete keypad. Desktop card width1024→896px.
+- All20 cases: no horizontal overflow, symmetric gutters, calculator controls
+  at least44x44px. Small320x568/enlarged text retain natural vertical scrolling.
+  No overflow hiding or fixed viewport height was introduced.
+- Rendered sampled contrast: text minimum6.42:1 light/7.99:1 dark; interactive
+  border-to-exterior4.02:1/4.29:1. Decorative borders are intentionally softer.
+- Inspected mobile and desktop screenshots in both themes; parent independently
+  inspected mobile-light and desktop-dark. Probes used actual component SSR and
+  built CSS in Chromium, not jsdom layout approximations.
+- Node22.18.0/pnpm12.9.1: format/lint/typecheck/test/coverage/build passed;
+ 71tests, coverage100% of11 exercised files (not CSS). Backend and reference
+  images unchanged. No business logic, dependency, commit or push changes.
+
+
+## Phase 3.3 — literal user prompt
+
+```text
+# Phase 3.3 — Calculation History UI
+
+Phase 3.2 is accepted.
+
+Follow AGENTS.md, the existing design system, and approved visual references.
+
+Implement the history UI under `features/history/`.
+
+### Scope
+
+- HistoryPanel
+- HistoryItem
+- HistoryEmptyState
+- HistoryToggle
+
+Display expressions, results, and timestamps.
+
+Provide controlled callbacks for reusing expressions, copying results, deleting individual entries, and clearing history.
+
+Use an accessible confirmation interaction before clearing all entries.
+
+Support a responsive, collapsible history panel without compromising the calculator layout.
+
+### Quality
+
+- Plain CSS, BEM, centralized tokens, and mobile-first design.
+- Reuse existing shared components.
+- Colocate implementation, CSS, and tests.
+- Use strict TypeScript, accessible semantics, and stable data-testid attributes.
+- Handle empty history, long expressions, long results, and large lists gracefully.
+
+### TDD
+
+Define the behavioral test matrix first.
+
+Complete each component individually through observed RED-GREEN-REFACTOR iterations.
+
+Test rendering, callbacks, empty states, keyboard accessibility, confirmation behavior, and controlled state.
+
+Use fixture data only in tests. Do not display fabricated calculation history in the application.
+
+Do not implement persistence, clipboard integration, mathematical evaluation, or API integration yet.
+
+Run frontend quality gates and real browser verification.
+
+Record this prompt in PROMPTS.md.
+
+Present a concise plan before modifying files.
+
+Do not modify the backend, add dependencies, commit, or push.
+```
+
+## Phase 3.3 approval — literal user prompt
+
+```text
+Yes, implement this plan
+```
+
+### Phase 3.3 execution evidence (assistant notes)
+
+- Defined the behavioral matrix before implementation in
+  odd/tasks/phase3-history-ui.md. Completed EmptyState, Item, Toggle and Panel
+  individually; each initial RED was an unresolved implementation import before
+  test cases executed, not a fabricated behavioral assertion failure.
+- GREEN regression totals72/79/83/96; Panel13focused tests passed. App integration
+  produced2 actual missing-toggle assertion failures, then13App/98total passed.
+- Node22.18.0/pnpm12.9.1: formatting, lint, typecheck,98tests/14files,
+  coverage and production build passed. Coverage:92.92% statements,
+  98.57% branches,89.36% functions,94.56% lines. Future App callbacks remain
+  uncovered because production history is genuinely empty; no artificial
+  fixture injection was added to raise coverage. Parent repeated98tests.
+- Live Chrome: opening history shows0entries and disabled Clear history;
+  native Space collapses the panel and keeps toggle focus. Initial tool key
+  spelling Space was unsupported; lowercase space worked (tool issue only).
+-60 real Chromium render cases covered320/360/1280 widths,16/20px text,
+  light/dark, collapsed App/open empty/long entry/1000entries/invalid timestamp.
+  No horizontal overflow, controls>=44x44,1000entries initially render20,
+  invalid dates show Time unavailable. Calculator geometry stays unchanged.
+-11 hydrated React fixture assertions passed in Chromium:20→40 entries,
+  Cancel initial focus, no premature clear, Escape and Cancel preserve data,
+  confirmation clears once, empty controlled state restores toggle focus,
+  collapse removes content controls and reopening stays empty.
+- Hydrated fixture setup needed a library-mode process.env.NODE_ENV definition
+  and virtual-time settling instead of animation frames. These were test-harness
+  issues, not product RED. Fixtures existed only in isolated test scratch files.
+- Production App supplies no copy callback, so copying remains unavailable;
+  no clipboard API or fake success feedback. Feature callback behavior is tested.
+- README current scope updated; no backend/dependency/reference changes,
+  mathematical evaluation, persistence, API integration, commit or push.
+
+## Phase 3 commit and push authorization — literal user prompt
+
+```text
+Phase 3 UI implementation is accepted.
+
+Review the final diff for accidental changes, secrets, generated artifacts, and code readability. Run the existing frontend quality gates.
+
+Include the approved design references under docs/design/.
+
+Record this authorization in PROMPTS.md.
+
+I authorize committing and pushing the approved changes to feat/calculator-ui.
+
+Commit message:
+
+feat(ui): implement responsive calculator and history components
+
+Report the commit hash, push result, and PR creation URL.
+
+Do not merge or begin the next phase.
+```

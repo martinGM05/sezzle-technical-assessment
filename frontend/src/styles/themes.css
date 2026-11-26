@@ -1,0 +1,29 @@
+:root {
+  color-scheme: light dark;
+  --color-background: light-dark(#f3f4fc, #11152b);
+  --color-surface: light-dark(#ffffff, #1c2239);
+  --color-surface-raised: light-dark(#f0f1fa, #2b334d);
+  --color-text: light-dark(#151827, #f7f8fc);
+  --color-muted: light-dark(#50566f, #b8bed4);
+  --color-border: light-dark(#777e99, #7d85a1);
+  --color-border-subtle: light-dark(#d9dcec, #414a66);
+  --color-accent: light-dark(#4935d4, #b8a6ff);
+  --color-on-accent: light-dark(#ffffff, #211442);
+  --color-focus: light-dark(#4935d4, #d1c5ff);
+  --color-info: light-dark(#373190, #cec6ff);
+  --color-info-surface: light-dark(#efedff, #2d284b);
+  --color-success: light-dark(#165a3d, #9ee1bc);
+  --color-success-surface: light-dark(#e6f5ed, #193b2e);
+  --color-warning: light-dark(#754200, #ffda98);
+  --color-warning-surface: light-dark(#fff2d6, #49341a);
+  --color-danger: light-dark(#a21e3c, #ffb5c6);
+  --color-danger-surface: light-dark(#ffe7ed, #492337);
+  --shadow-control: 0 4px 12px light-dark(#28265a26, #00000040);
+  --shadow-shell: 0 24px 64px light-dark(#28265a1a, #00000040);
+}
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}

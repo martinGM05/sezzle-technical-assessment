@@ -1,0 +1,19 @@
+@import './reset.css';
+@import './tokens.css';
+@import './themes.css';
+
+:root {
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  background: var(--color-background);
+  font-synthesis: none;
+  line-height: 1.5;
+}
+:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+::selection {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
