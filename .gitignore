@@ -9,6 +9,7 @@ frontend/*.tsbuildinfo
 
 # Backend generated artifacts
 backend/coverage.out
+backend/coverage/
 backend/*.test
 backend/bin/
 

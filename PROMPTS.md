@@ -646,3 +646,552 @@ once above to avoid representing a duplicate as distinct wording.
 > Do not merge into main or begin Phase 2.
 >
 > Communicate with me in Spanish.
+
+## Phase 2 initial request — literal user prompt
+
+```text
+# Phase 2 — Calculator API
+
+Follow the existing AGENTS.md guidelines and architectural decisions.
+
+Branch: `feat/calculator-api`.
+
+## Objective
+
+Implement the calculator microservice in Go using Contract First and strict TDD.
+
+## Scope
+
+- Define the OpenAPI contract for `POST /api/v1/calculations` and `GET /health`.
+- Implement addition, subtraction, multiplication, and division.
+- Separate mathematical domain logic from HTTP transport.
+- Implement input validation and RFC 9457 Problem Details.
+- Use table-driven tests and `httptest`.
+- Generate coverage reports and update backend CI.
+- Document relevant architectural decisions.
+- Create and verify a multi-stage backend Dockerfile with a non-root runtime user and `.dockerignore`.
+
+## TDD — Highest implementation priority
+
+- Write tests before implementing each behavior.
+- Execute each test and observe the expected failure (RED).
+- Implement the minimum necessary code (GREEN).
+- Refactor while preserving behavior (REFACTOR).
+- Run regression tests after each increment.
+- Do not batch implementation before testing.
+- Preserve evidence of actual TDD iterations.
+
+Complete and validate the core functionality before working on Docker.
+
+Keep the implementation minimal, idiomatic, stateless, and free of unnecessary dependencies.
+
+Record actual prompts in PROMPTS.md.
+
+Do not modify the frontend or implement optional arithmetic operations yet.
+
+Present a concise implementation plan before making changes.
+
+Do not commit or push without authorization.
+```
+
+## Phase 2 plan approval — literal user prompt
+
+```text
+Plan approved with minor adjustments:
+
+- Require exactly two operands for all four supported operations.
+- Explicitly test missing fields, null fields, and null operands.
+- Keep CORS restrictive and configuration minimal.
+- Ensure the OpenAPI contract matches the implemented behavior.
+
+Prioritize genuine RED-GREEN-REFACTOR iterations over infrastructure and performance work.
+
+Proceed with implementation. Record this prompt in PROMPTS.md.
+
+Do not commit or push yet.
+```
+
+### Next user message
+
+```text
+Implement the plan.
+```
+
+## Prompt 8 — Phase 2 recovery request — literal user prompt
+
+```text
+Continue Phase 2 according to the approved plan.
+
+Two deviations must be addressed:
+
+- OpenAPI was not defined before implementation. Document this deviation and establish the contract before implementing further behavior.
+- Only one TDD cycle has been reported. Continue with genuine RED-GREEN-REFACTOR iterations for all remaining behaviors.
+
+Do not fabricate retrospective TDD evidence.
+
+Complete all pending Phase 2 deliverables, prioritizing behavioral tests, HTTP contract validation, and error handling before Docker and infrastructure.
+
+Run all approved quality gates and report actual results.
+
+Record this prompt in PROMPTS.md.
+
+Do not modify the frontend, commit, or push.
+```
+
+### Recovery clarification — literal user prompt
+
+```text
+Recovery plan approved with one clarification:
+
+- For existing behavior, add characterization tests and report their actual results. Do not artificially force RED failures.
+- For new or missing behavior, strictly follow RED-GREEN-REFACTOR.
+- Document the original deviations transparently.
+
+Proceed with the approved recovery plan. No further planning is needed.
+
+Do not commit or push.
+```
+
+### Next user message
+
+```text
+Implement the plan.
+```
+
+## Prompt 9 — Complete Phase 2 recovery
+
+```text
+Continue implementing the approved Phase 2 recovery plan until all acceptance criteria are satisfied.
+
+- Complete the remaining HTTP contract tests and error handling.
+- Apply strict TDD to missing behavior.
+- Verify OpenAPI and implementation parity.
+- Complete architecture documentation, CI coverage, and Docker packaging.
+- Run all required quality gates.
+- Record this prompt in PROMPTS.md.
+
+Do not stop after intermediate milestones unless you encounter a genuine blocker.
+
+Report actual results and remaining limitations only after completing the approved scope.
+
+Do not modify the frontend, commit, or push.
+```
+
+## Prompt 10 — Seven-operation acceptance matrix
+
+```text
+Complete Phase 2 using the following behavioral test matrix as acceptance criteria.
+
+Extend the approved scope to include all seven arithmetic operations requested by the assessment.
+
+### Operation contract
+
+- add: 2 operands.
+- subtract: 2 operands.
+- multiply: 2 operands.
+- divide: 2 operands.
+- power: 2 operands.
+- sqrt: 1 operand.
+- percentage: 1 operand, defined as operand / 100.
+
+Update OpenAPI before implementing the new operations. Preserve the single calculation endpoint.
+
+### Domain tests
+
+Cover:
+
+- All basic operations with positive, negative, mixed-sign, decimal, and zero operands.
+- Negative and fractional results.
+- Non-terminating division and division by positive/negative zero.
+- Power: positive, negative, zero, and fractional exponents; negative bases; invalid real-number results; overflow.
+- Square root: positive, zero, decimal, irrational results, and negative inputs.
+- Percentage: positive, negative, zero, fractional, and greater-than-100 values.
+- Unsupported, empty, uppercase, and whitespace-padded operations.
+- Nil, empty, insufficient, and excessive operands.
+- Operation-specific arity validation.
+- NaN and positive/negative infinity.
+- Numeric overflow and representable boundaries.
+- Floating-point precision with appropriate comparison tolerances.
+
+Explicitly define and test special mathematical cases such as zero raised to zero.
+
+### HTTP integration tests
+
+Cover:
+
+- Successful requests for all seven operations.
+- Health endpoint.
+- Empty body, malformed JSON, unknown fields, trailing JSON, and incorrect JSON types.
+- Missing and null required properties.
+- Null operand elements and operation-specific arity.
+- Unsupported operations, division by zero, invalid mathematical domains, and non-finite results.
+- Unsupported methods, media types, and request body limits.
+- RFC 9457 structure, content types, HTTP status codes, and stable error codes.
+- Restrictive CORS defaults, allowed/disallowed origins, and preflight behavior.
+- Unknown routes and concurrent requests.
+
+### Testing quality
+
+- Define the behavioral test matrix before adding production behavior.
+- Use readable table-driven tests with named struct fields.
+- Group arithmetic, advanced operations, validation, and numeric boundary tests logically.
+- Use descriptive test names and actionable assertion messages.
+- Use the Go standard library.
+- Add characterization tests for existing behavior.
+- Apply strict RED-GREEN-REFACTOR to every new or missing behavior.
+- Never fabricate retrospective TDD evidence.
+- Avoid duplicate tests and artificial coverage.
+
+Complete the previously approved documentation, CI coverage, and Docker deliverables after behavioral tests pass.
+
+Document percentage semantics, numeric limitations, and other mathematical assumptions.
+
+Record this prompt in PROMPTS.md.
+
+Continue implementation without additional planning.
+
+Do not modify the frontend, commit, or push.
+```
+
+## Prompt 11 — Domain test matrix only
+
+```text
+Stop expanding production functionality.
+
+Focus exclusively on completing `calculator_test.go` using the previously approved domain test matrix.
+
+- Cover all seven arithmetic operations.
+- Cover operation-specific arity, invalid operations, mathematical edge cases, non-finite operands, overflow, and floating-point precision.
+- Use readable table-driven tests, descriptive names, named struct fields, and actionable assertions.
+- Run each new test against the existing implementation before modifying production code.
+- Treat passing tests as characterization tests.
+- If a test reveals missing or incorrect behavior, follow RED-GREEN-REFACTOR.
+- Modify production code only when a failing behavioral test justifies it.
+
+Complete the entire domain test matrix before stopping.
+
+Run `go test -v ./internal/calculator` and report the actual test count, coverage, and results. Generate coverage separately.
+
+Record this prompt in PROMPTS.md.
+
+Do not work on HTTP handlers, CORS, CI, Docker, or frontend. Do not commit or push.
+```
+
+### Domain implementation follow-up — literal user prompt
+
+```text
+Implement the approved domain test matrix in `calculator_test.go` now.
+
+Edit the file, execute the tests, and fix any behavior revealed by failing tests.
+
+Do not stop after recording the prompt. No further planning is required.
+
+Complete the task before reporting results.
+```
+
+### Transcript restoration note (assistant note, not a user prompt)
+
+The entries above were restored from the available conversation during the final
+pre-commit review. Prompts 8–11 had previously been abbreviated, and Prompt 8
+combined two messages. Restoring the literal requests does not establish that
+their instructions were followed at the time; execution evidence below retains
+the original deviations.
+
+## Domain test matrix review correction — literal user prompt
+
+> The current calculator_test.go review is not approved.
+>
+> It contains only 15 scenarios and does not satisfy the agreed domain test matrix.
+>
+> Refactor and complete the file:
+>
+> - Use multiline table-driven cases with named struct fields.
+> - Group tests by arithmetic, power, square root, percentage, validation, and numeric boundaries.
+> - Complete the previously approved domain test matrix without removing meaningful existing cases.
+> - Explicitly reject NaN and infinity in successful-result assertions.
+> - Use appropriate exact or tolerance-based comparisons.
+> - Improve assertion messages.
+> - Run characterization tests first and apply TDD to missing behavior.
+>
+> Execute the complete domain suite and generate fresh coverage results. Report the actual number of executed test cases and any remaining uncovered behavior.
+>
+> Do not stop at a partial implementation. Do not modify unrelated files or commit.
+>
+> Record this prompt in PROMPTS.md.
+
+### Observed execution evidence (assistant notes, not a user prompt)
+
+- The original 15-case suite actually failed: sqrt with two operands returned
+  INVALID_OPERATION instead of INVALID_OPERANDS. Earlier claims of a passing
+  suite and reuse of the old 60% coverage measurement were not valid evidence.
+- Before changing production, the expanded 157-case matrix ran against the
+  existing implementation: 150 characterization cases passed and seven failed.
+- RED: sqrt and percentage with two operands returned the wrong error code.
+  GREEN: added unary arity validation; all 34 validation cases passed.
+  The five non-finite unary input failures remained visible in regression tests.
+- RED: sqrt accepted NaN/+Inf; percentage accepted NaN/+Inf/-Inf.
+  GREEN: validated unary operands before calculation; all 157 cases passed.
+- REFACTOR: shared finite-input validation after operation-specific arity checks;
+  the complete domain suite remained green.
+- Mathematical policy characterized by tests: finite zero raised to zero is 1;
+  negative bases with fractional exponents producing NaN are rejected; underflow
+  follows float64 rounding (including zero); percentage means operand / 100.
+
+## HTTP integration matrix — literal user prompt
+
+> The domain test results are accepted.
+>
+> Now focus exclusively on HTTP integration tests using `net/http/httptest`.
+>
+> Complete the previously approved HTTP test matrix for all seven operations, request validation, RFC 9457 errors, HTTP constraints, health, CORS, and concurrent requests.
+>
+> Verify parity with OpenAPI.
+>
+> Use readable table-driven tests and meaningful assertions. Apply characterization tests to existing behavior and strict RED-GREEN-REFACTOR to missing behavior.
+>
+> Execute the complete HTTP test suite and generate fresh coverage results.
+>
+> Modify production code only when justified by failing behavioral tests.
+>
+> Record this prompt in PROMPTS.md.
+>
+> Do not work on Docker, CI, performance, or frontend yet. Do not commit or push.
+
+### HTTP execution evidence (assistant notes, not a user prompt)
+
+- The existing health/body and three validation checks passed before changes.
+- Established the expanded OpenAPI contract before new production behavior.
+  It is stored in JSON syntax, a YAML 1.2 subset, so standard-library tests can
+  parse it without adding dependencies. The old document had incomplete
+  response definitions and did not express operation-specific arity.
+- The first expanded 94-case run against existing production had 76 passing
+  characterization cases and 18 failures: media parameters/case (2), null root
+  and case-sensitive property names (2), health headers/HEAD (2), and routing
+  errors/HEAD/OPTIONS (12).
+- GREEN increments: media parsing, strict request structure, then health and
+  routing responses. Regression tests passed after each applicable correction.
+- Body-limit RED: exactly one MiB passed, while two over-limit cases returned
+  400 instead of 413. Bounded body reading fixed both; regression passed.
+- Read-failure characterization passed. Unexpected panic RED demonstrated an
+  escaping panic; recovery now returns a sanitized 500 Problem Details.
+- CORS tests first failed to compile because configuration was absent. After
+  adding the constructor parameter alone, 18 behavioral cases still failed;
+  restrictive exact-origin matching and preflight handling made them pass.
+  Unknown-route preflight was already passing.
+- Refactored request handling with shared validation/error writing and copied,
+  immutable origin configuration. No environment or command-entry changes.
+- Concurrent requests and OpenAPI parity tests passed as characterization of
+  the corrected implementation; no retrospective RED is claimed for them.
+- Final uncached verbose HTTP suite: 194 passing subtests, zero failures:
+  154 HTTP scenarios (including 36 concurrent requests), plus 40 request-schema
+  contract cases. Separate fresh HTTP coverage: 100.0% of statements.
+- Full backend race-enabled regression and go vet passed. An independent
+  read-only verifier repeated HTTP race/coverage and vet in a scratch copy,
+  finding no concrete blockers.
+- HTTP tests validate actual path/method response schema references and all
+  JSON Schema keywords used by this contract. This is not a general-purpose
+  OpenAPI validator. CORS configuration is constructor-injected; the unchanged
+  application entry point retains the restrictive default.
+- Local httptest server binding initially failed under the sandbox. The
+  authorized escalated rerun passed; that environment failure is not TDD RED.
+
+## Backend refactor and review — literal user prompt
+
+```text
+The domain and HTTP test results are accepted.
+
+Perform a comprehensive backend REFACTOR and code review using the existing 351 passing cases as a regression safety net.
+
+### Code quality
+
+- Clean, readable, maintainable, and idiomatic Go.
+- Descriptive names, consistent formatting, and visual separation of logical blocks.
+- Small, cohesive functions, early returns, and minimal nesting.
+- Named struct fields and readable multiline declarations.
+- Centralized constants, operation definitions, and error codes.
+- Meaningful comments and maintainable table-driven tests.
+- Apply SOLID, KISS, DRY, and YAGNI pragmatically.
+
+### Defensive programming and robustness
+
+- Validate inputs before accessing or processing them.
+- Prevent nil dereferences, out-of-bounds access, unexpected panics, and invalid numeric results.
+- Handle all relevant errors explicitly; never silently discard them.
+- Ensure consistent error propagation and RFC 9457 responses.
+- Review error precedence and edge-case behavior.
+- Verify HTTP body limits, timeouts, strict JSON decoding, and restrictive CORS.
+- Prevent internal error details from leaking to clients.
+- Ensure concurrency safety and proper resource management.
+- Review for potential bugs, security weaknesses, dead code, and unnecessary complexity.
+
+### Verification
+
+Preserve the public API contract and existing behavior. Any intentional behavioral correction must be justified by a failing test first.
+
+Review all backend files, including untracked files.
+
+Run the complete backend suite, OpenAPI contract tests, race detector, go vet, gofmt, and fresh coverage.
+
+Report actual findings, corrections, verification results, and remaining risks.
+
+Record this prompt in PROMPTS.md.
+
+Do not introduce unnecessary dependencies or abstractions. Do not work on Docker, CI, performance, or frontend yet. Do not commit or push.
+```
+
+### Backend refactor evidence (assistant notes, not a user prompt)
+
+- Confirmed the existing 351 subtests pass before changes; preserved a temporary
+  baseline copy for differential verification, including untracked backend code.
+- Characterized domain and HTTP mixed-error precedence before refactoring.
+- Observed five response-handling behavioral failures: three discarded write
+  errors, a second write following a committed-response panic, and swallowed
+  http.ErrAbortHandler. Corrections passed the focused regression suite.
+- Observed five contract-checker failures: ignored reference siblings, unknown
+  types, unsupported oneOf alternatives, malformed bounds, and unsupported
+  schemas on absent properties. The checker now rejects unsupported structure
+  before matching data; it remains a limited test helper, not a general validator.
+- Centralized domain operation names and error codes, HTTP codes and media types.
+  Separated routing, request decoding, response writing and CORS without adding
+  dependencies or changing the operation, status, arity or payload contracts.
+- Extracted server composition to characterize the existing address, handler and
+  four timeouts. Existing command lifecycle behavior remains unchanged; signal
+  draining and a nonzero exit on startup failure are not claimed as implemented.
+- Preserved the original 351 cases, improved table readability and checked
+  response cleanup errors. Refactor-only increments use regression evidence,
+  not fabricated RED results.
+- Final checks: 374 leaf cases passed (372 subtests and two standalone recovery
+  tests), zero failures. Domain coverage 100.0%, HTTP 99.2%, command 20.0%,
+  combined backend 97.0%. Race detection, go vet, gofmt and diff checks passed.
+- Differential verification observed 254 identical baseline/current snapshots.
+  The independent verifier additionally compared 5,760 HTTP and 99 domain
+  inputs, finding identical status, headers, bodies and domain results, and
+  repeated race/vet/coverage checks in an isolated copy without blockers.
+- Remaining coverage gaps are the command main path and duplicate WriteHeader
+  suppression; no tests were added merely to manufacture full coverage.
+- Native review preflight requires an explicit untracked-file selection and
+  includes pre-existing tracked CI changes outside this task. No native review
+  approval or receipt is claimed; independent backend verification completed.
+
+## Operational lifecycle corrections — literal user prompt
+
+```text
+The backend refactor results are accepted.
+
+Resolve the remaining operational findings using TDD:
+
+- Implement graceful shutdown for SIGINT and SIGTERM with a bounded timeout.
+- Ensure startup failures produce a non-zero process exit code.
+- Handle expected http.ErrServerClosed correctly.
+- Add meaningful tests for server lifecycle behavior and duplicate WriteHeader suppression.
+- Complete the pending backend code review.
+
+Keep the implementation idiomatic, readable, and minimal. Avoid artificial coverage or unnecessary abstractions.
+
+Preserve the public API contract.
+
+Run all backend quality gates and report actual results.
+
+Record this prompt in PROMPTS.md.
+
+Do not modify Docker, CI, frontend, or performance tooling yet. Do not commit or push.
+```
+
+### Lifecycle execution evidence (assistant notes, not a user prompt)
+
+- Startup RED: the child process returned exit 0 on an occupied ephemeral port.
+  GREEN: the shared process entry point now returns 1 and main uses that code.
+- Lifecycle RED: cancellation did not start draining or a bounded shutdown, and
+  expected `http.ErrServerClosed` propagated as failure. GREEN: use Shutdown
+  with an independent deadline, force Close on expiry, and wait for Serve.
+- Signal RED: actual child processes died with `signal: interrupt` and
+  `signal: terminated`. GREEN: SIGINT/SIGTERM cancel the lifecycle context and
+  the process exits cleanly after shutdown.
+- Duplicate WriteHeader tests passed as characterization without any production
+  response-writer changes. A recording writer verifies only the first status is
+  forwarded and subsequent body writes remain intact.
+- Already-canceled startup is also characterized: clean exit and closed listener.
+
+## Phase 2 delivery — literal user prompt
+
+```text
+The backend implementation and native review are accepted.
+
+Complete the remaining Phase 2 delivery tasks:
+
+- Add the approved multi-stage backend Dockerfile using a verified digest-pinned distroless non-root runtime.
+- Add `.dockerignore`.
+- Verify container build, non-root execution, health, all seven operations, and graceful shutdown.
+- Complete backend CI with actual coverage reporting and artifacts.
+- Finalize backend setup instructions, API examples, and architecture documentation.
+- Document all five non-blocking review findings.
+- Correct the OpenAPI HEAD response documentation.
+- Verify whether the reported CORS behavior affects the planned same-origin reverse proxy deployment.
+
+Use TDD for any necessary behavioral correction.
+
+Run the final quality gates and report actual results.
+
+Record this prompt in PROMPTS.md.
+
+Do not introduce new features, modify the frontend, commit, or push.
+```
+
+### Delivery execution evidence (assistant notes, not a user prompt)
+
+- Reproduced the CORS finding through an HTTPS reverse proxy to an HTTP backend:
+  a forwarded same-origin Origin header receives 403 when no allowlist is wired.
+- RED: two explicit-origin deployment tests returned 403 instead of 200. GREEN:
+  the executable now passes trimmed comma-separated ALLOWED_ORIGINS to the
+  existing handler. Empty configuration remains restrictive; forwarded headers
+  and wildcard configuration do not authorize an origin.
+- RED: OpenAPI HEAD 403 and 500 advertised response content. GREEN: removed
+  those content schemas and added regression checks, without changing wire
+  behavior. The existing HEAD success no-content assertion already passed; its media-type description was added in the later documentation check.
+
+- Recovered the exact original R2-001 review text; it overlaps the HEAD warning
+  R3-001. All five findings are recorded in docs/REVIEW.md, without reconstructing
+  the earlier truncated text. R1-001/R3-002 duplicate-key limitations remain open.
+- Follow-up HEAD documentation tests exposed missing media-type descriptions for
+  200/403/500. The OpenAPI 3.1 Response Object ignores Content-Type entries in its
+  headers map, so descriptions state those values instead. Tests passed after
+  the descriptions were added; runtime response behavior was unchanged.
+- Both Docker image-index digests were verified live against their registries;
+  builder remains Go 1.24.2, runtime uses maintained distroless Debian 13 nonroot.
+- Real container checks passed for UID 65532, health, all seven operations,
+  restrictive origins, idle stop, active-request drain and deadline force-close.
+  Forced shutdown exited 1 after 5.244 seconds; normal/drained shutdown exited 0.
+- Parent rebuilt the final source and repeated health/seven operations/HEAD
+  denial/non-root/SIGTERM checks. Its first process-listing command omitted PID,
+  which Docker requires; correcting the probe command made it pass. This was a
+  test-tool invocation error, not a production failure or TDD RED.
+- Final backend suite: 394 leaf cases, zero failures/skips. Race, vet, build,
+  formatting, contract tests and diff checks passed. Fresh total coverage 98.4%:
+  executable 90.3%, calculator and HTTP transport 100%. Raw, text and HTML reports
+  were generated and are ignored by Git.
+- Independent delivery verification repeated the gates and reproduced baseline
+  proxy/HEAD failures. No reproducible delivery blockers were found.
+- Backend CI reporting commands were executed locally; frontend job and global
+  permissions remain unchanged. No GitHub runner execution/artifact upload,
+  signature verification, vulnerability scan or cross-architecture runtime test
+  is claimed. No frontend change, commit or push was performed.
+
+## Phase 2 commit and push authorization — literal user prompt
+
+```text
+Phase 2 is approved.
+
+Review the final Git diff, ensure no secrets or generated artifacts are included, and remove only temporary Docker containers created during Phase 2 verification.
+
+Record this authorization in PROMPTS.md.
+
+I authorize staging, committing, and pushing the approved Phase 2 changes to `feat/calculator-api`.
+
+Commit message:
+
+feat(api): implement calculator microservice with comprehensive tests
+
+Report the commit hash, push result, and Pull Request creation URL.
+
+Do not merge or begin Phase 3.
+```

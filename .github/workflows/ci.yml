@@ -41,15 +41,45 @@ jobs:
     defaults:
       run:
         working-directory: backend
+        shell: bash
     steps:
-      # actions/checkout v5
+      # actions/checkout v5.1.0
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
-      # actions/setup-go v6
+      # actions/setup-go v6.5.0
       - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16
         with:
           go-version-file: backend/go.mod
+          # The standard-library-only module has no go.sum; cache build outputs.
           cache-dependency-path: backend/go.mod
-      - run: test -z "$(gofmt -l .)"
-      - run: go vet ./...
-      - run: go test -race ./...
-      - run: go build ./...
+      - name: Check formatting
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            printf '%s\n' "$unformatted"
+            exit 1
+          fi
+      - name: Vet
+        run: go vet ./...
+      - name: Test with race detection and coverage
+        run: |
+          mkdir -p coverage
+          # Do not use -short: the suite includes real SIGINT/SIGTERM subprocesses.
+          go test -count=1 -race -covermode=atomic -coverprofile=coverage/coverage.out ./...
+      - name: Report coverage
+        run: |
+          go tool cover -func=coverage/coverage.out | tee coverage/summary.txt
+          go tool cover -html=coverage/coverage.out -o coverage/index.html
+          {
+            printf '## Backend coverage\n\n```text\n'
+            cat coverage/summary.txt
+            printf '```\n'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload coverage reports
+        # actions/upload-artifact v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: backend-coverage
+          path: backend/coverage/
+          if-no-files-found: error
+      - name: Build
+        run: go build ./...
