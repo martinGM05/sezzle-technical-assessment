@@ -171,3 +171,51 @@ local Go service. Production uses same-origin routing rather than embedding an
 API hostname. The existing Go origin allowlist remains restrictive: configure
 the public frontend origin because same-origin POST requests may include Origin,
 and proxying alone does not remove it. No CORS bypass was introduced.
+
+
+## Final container deployment (Phase 6)
+
+Docker Compose builds two independent services. A Node 22.18.0 / pnpm 12.9.1
+stage installs the frozen lockfile and builds React; only static output enters
+Nginx. The [upstream unprivileged image](https://github.com/nginx/docker-nginx-unprivileged)
+runs as UID/GID 101 on port 8080. Its default PID/temp paths are under `/tmp`,
+which Compose provides as a bounded tmpfs. Go retains its existing distroless
+UID/GID 65532 runtime; no shell, new Go command or health binary was added.
+Both services are read-only, drop capabilities and forbid privilege escalation.
+
+The frontend joins a host-facing bridge and the internal application network;
+only its port is bound to loopback. Backend has only the internal network and no
+published port. The initial internal-only frontend topology passed internal
+health checks but failed the real published-health test on Docker Engine 27.4.
+An observed RED preceded adding the separate frontend bridge; the same test and
+all 27 native Node HTTP smoke tests then passed. Internal readiness alone was
+not treated as proof of application availability.
+
+Nginx serves static assets and proxies `/api/` and `/health` without rewriting
+paths or Origin. Docker DNS resolution allows backend address refresh without
+rebuilding the frontend. Request buffering is disabled; Go owns the one-MiB limit
+and JSON Problem Details. Nginx still enforces proxy connection/read/send timeouts.
+See [the upstream proxy directive semantics](https://nginx.org/en/docs/http/ngx_http_proxy_module.html).
+The default explicit allowlist is localhost/127.0.0.1 on port 8088; when the host
+port changes, ALLOWED_ORIGINS must change too. There is no wildcard or CORS bypass.
+
+`/healthz` checks Nginx; `/health` traverses the proxy to Go. The frontend Compose
+healthcheck exercises both, keeping the backend runtime minimal. A healthy stack
+requires a separate published-port check as well (`scripts/containers.test.mjs`).
+`depends_on` orders startup only; `docker compose up --build -d --wait` waits for
+the combined readiness check. Runtime proxy outages may produce a generic Nginx
+502/504 rather than Go Problem Details; the existing client safely handles this.
+
+Frontend image indexes were verified live with `docker buildx imagetools inspect`
+on 2026-11-26 and pinned in `frontend/Dockerfile`:
+
+- Node 22.18.0-bookworm-slim: `sha256:752ea8a2f758c34002a0461bd9f1cee4f9a3c36d48494586f60ffce1fc708e0e`.
+- nginxinc/nginx-unprivileged stable-alpine: `sha256:f5116ed4606f3eb015dd4a8e28cb9b351476dc0ad4bc6e9f93b19cec130cdf03` (executed Nginx 1.30.6).
+
+Existing backend pins remain unchanged. Index digests preserve multi-architecture
+resolution, but only Linux arm64 was executed. No signature or vulnerability-scan
+claim is implied. Build inputs exclude local dependencies, coverage, secrets and
+Git/AI metadata; runtime images contain no source tests or coverage reports.
+Frontend CI now uploads its existing HTML coverage alongside the backend's
+profile/summary/HTML artifact using the already verified upload-action SHA.
+Reports stay ignored locally and are not served by the production web container.

@@ -38,7 +38,8 @@ These are quality decisions, not independently verified assessment requirements:
 - RFC 9457 Problem Details responses.
 - Strict JSON decoding, request limits, timeouts, and explicit CORS origins.
 - React Testing Library and GitHub Actions.
-- MSW and Docker Compose only if separately justified and approved.
+- Docker Compose, explicitly approved for Phase 6 final delivery.
+- MSW only if separately justified and approved; it was not introduced.
 - Structured logging and graceful shutdown.
 
 The project will adopt these only when they remain proportionate to the
@@ -56,3 +57,35 @@ The keyboard regression is complete using the existing Vitest, React Testing
 Library and user-event setup, plus manual Chrome verification against the real Go
 backend. Existing frontend/backend quality gates and coverage reporting remain
 in scope; no additional tooling is needed to finish this correction.
+
+
+## Final reported-requirement traceability
+
+The supplied requirements are implemented and have the following evidence. The
+original-assignment verification limitation above remains; no unseen requirement
+is assumed or certified.
+
+- React responsive UI: `frontend/src/features/calculator/components/`, shared UI
+  and token/theme styles; existing component tests and approved visual references.
+  Phase 6 verifies the unchanged UI against the containerized service in Chrome.
+- Basic arithmetic and optional power/square-root/percentage: Go calculator domain
+  and expression engine; 632 backend leaf cases plus real-proxy smoke coverage of
+  all seven operations and precedence/parentheses/unary cases.
+- REST/JSON validation and division-by-zero handling: `docs/openapi.yaml`, Go HTTP
+  tests, native container tests and manual browser error recovery. Transport is
+  separate from pure arithmetic; no frontend mathematical evaluator exists.
+- Frontend and backend unit tests/coverage: 245 frontend cases, native Go suites,
+  fresh HTML reports and documented reproducible commands in README. CI artifact
+  uploads are configured for both services; Phase 6 remote execution is pending
+  authorized publication, not claimed as already passed.
+- Setup/API/architectural documentation: README, ARCHITECTURE and EXPRESSIONS.
+- Git solution and AI prompt documentation: repository source and explicitly curated
+  PROMPTS.md, with the unedited original preserved in a Git-ignored local archive. Final publication requires explicit authorization; local results do not establish a remote CI pass.
+- Optional Docker support: two non-root multi-stage images plus Compose;
+  `docker compose up --build` builds and starts the full application.
+
+Expression support, persisted history, themes, Docker Compose, strict TDD,
+OpenAPI, Problem Details and CI are approved engineering work, not a claim that
+each was mandatory in the original assessment. Playwright, k6, Lighthouse and
+additional performance testing remain excluded. No further feature work is
+planned as part of final delivery.

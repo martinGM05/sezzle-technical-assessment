@@ -68,9 +68,7 @@ function App() {
           onClear={history.clear}
         />
       </div>
-      <footer className="app-shell__footer">
-        Evaluated by Go · IEEE 754 arithmetic
-      </footer>
+      <footer className="app-shell__footer">By Martin Gonzalez Miranda</footer>
     </main>
   )
 }
