@@ -1,9 +1,25 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 
-afterEach(cleanup)
+beforeEach(() => {
+  localStorage.clear()
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockImplementation(() =>
+      Promise.resolve(
+        new Response('{"result":3.5}', {
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      ),
+    ),
+  )
+})
+afterEach(() => {
+  cleanup()
+  vi.unstubAllGlobals()
+})
 
 describe('App', () => {
   it('renders the calculator rather than the temporary component showcase', () => {
@@ -30,7 +46,7 @@ describe('App', () => {
       )
     }
   })
-  it('edits text including decimal and parentheses without evaluating or parsing', async () => {
+  it('edits text including decimal and parentheses and displays only the server result', async () => {
     const user = userEvent.setup()
     render(<App />)
     for (const name of [
@@ -50,11 +66,8 @@ describe('App', () => {
       'true',
     )
     await user.click(screen.getByRole('button', { name: 'Equals' }))
-    expect(screen.getByLabelText('Result')).toHaveTextContent('—')
-    expect(
-      screen.getByRole('status', { name: 'Integration notice' }),
-    ).toHaveTextContent(
-      'Calculation will be available when backend integration is added.',
+    await waitFor(() =>
+      expect(screen.getByLabelText('Result')).toHaveTextContent('3.5'),
     )
     expect(screen.getByTestId('calculator-display')).toHaveAttribute(
       'aria-busy',
@@ -129,8 +142,23 @@ describe('App history', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('preserves calculator input and theme across toggles and never fabricates an equals result', async () => {
+  it('preserves input and theme and does not add a failed calculation to history', async () => {
     const user = userEvent.setup()
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          type: 'about:blank',
+          title: 'Unprocessable Content',
+          status: 422,
+          detail: 'Expression syntax is invalid.',
+          code: 'SYNTAX_ERROR',
+        }),
+        {
+          status: 422,
+          headers: { 'Content-Type': 'application/problem+json' },
+        },
+      ),
+    )
     render(<App />)
     await user.click(screen.getByRole('radio', { name: 'Dark' }))
     await user.click(screen.getByRole('button', { name: 'Digit 7' }))
@@ -139,6 +167,9 @@ describe('App history', () => {
       screen.getByRole('button', { name: 'Calculation history' }),
     )
     await user.click(screen.getByRole('button', { name: 'Equals' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Expression syntax is invalid.',
+    )
     expect(screen.getByLabelText('Expression')).toHaveTextContent('7+')
     expect(screen.getByRole('button', { name: 'Addition' })).toHaveAttribute(
       'aria-pressed',

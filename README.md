@@ -15,6 +15,44 @@ cd frontend
 pnpm install --frozen-lockfile
 ```
 
+## Run the integrated application locally
+
+Use two terminals from the repository root:
+
+```bash
+# Terminal 1
+cd backend
+ALLOWED_ORIGINS=http://127.0.0.1:5173 go run ./cmd/api
+```
+
+```bash
+# Terminal 2
+cd frontend
+pnpm dev --host 127.0.0.1 --port 5173 --strictPort
+```
+
+Open `http://127.0.0.1:5173`. Vite proxies `/api` to `http://127.0.0.1:8080`.
+Set `API_PROXY_TARGET` when starting Vite to use a different backend target.
+Changing the frontend host or port also requires updating Go's `ALLOWED_ORIGINS`.
+The proxy preserves the browser Origin header; it does not bypass the backend
+allowlist. Production needs a same-origin reverse proxy for `/api`; the browser
+client contains no production hostname. Vite's development proxy is not a
+production server or a `pnpm preview` proxy.
+
+### Keyboard and request behavior
+
+- Digits, `.`, parentheses and `+ - * / ^ %` enter expressions; `r` inserts `√(`.
+- `Enter` or `=` evaluates; `Backspace` removes a character; `Escape`/`Delete` clears.
+- Enter evaluates even when a calculator button retains focus; Space still
+  activates that button. Controls outside the calculator and editable fields
+  preserve their native keyboard behavior.
+- Clear remains available while loading and cancels the request. Editing or reusing
+  an expression also invalidates pending work. Duplicate pending submissions and
+  obsolete responses cannot create extra history entries or overwrite new state.
+- After a result, input continues editing the expression; use Clear to start over.
+  Results use the server's finite number without decimal rounding (including the
+  usual IEEE 754 representation limitations).
+
 ## Frontend commands
 
 ```bash
@@ -100,7 +138,8 @@ parentheses. Power is right-associative: `2^3^2 = 512`; `-2^2 = -4` and `2^-3 =
 0.125`. Percent always divides by 100, not contextual financial percentage.
 Expressions are limited to 4096 ASCII bytes and 64 nested recursive constructs.
 See [grammar, errors and mathematical assumptions](docs/EXPRESSIONS.md).
-The frontend is not connected to this endpoint in Phase 4.
+The frontend evaluates expressions through this endpoint; it does not parse or
+evaluate mathematics locally.
 
 ## Backend quality checks
 
@@ -158,27 +197,45 @@ external supervisor sends SIGKILL. Docker Compose is not required for the backen
 
 ## Current scope
 
-Phase 4 adds the bounded Go expression engine and its HTTP endpoint.
+Phase 5 connects the existing calculator and history components to the Go
+expression endpoint. All seven operations, parentheses, decimals, error recovery,
+cancellation and physical keyboard input are available. Only successful server
+results enter history; no sample history is injected.
 
-Phase 2 provides the Go calculator API, contract, behavioral tests, lifecycle,
-backend container and quality pipeline. The frontend now includes the design
-system, controlled calculator UI and collapsible history UI. Calculator controls
-edit text only; equals reports that backend integration is pending. History starts
-empty and no sample entries are injected. History components expose reuse, copy,
-delete and confirmed-clear callbacks; copy is disabled without a supplied handler.
-Dates are displayed in the user's locale and time zone. History shows 20 entries
-at a time, with a button to reveal more.
+History is newest-first, retains at most 100 entries and displays 20 at a time.
+Reuse restores an expression without evaluating it; copy uses the browser
+Clipboard API, delete removes one entry, and clearing all entries requires
+confirmation. Dates use the user's locale and time zone. History and theme
+preferences persist in versioned localStorage records for this origin. Storage
+failures produce a warning while in-memory interaction remains available.
 
-Frontend evaluation, parsing, API/clipboard integration, history persistence,
-full-stack end-to-end tests and performance work remain outside the delivered UI
-scope. No database, broker, authentication or distributed infrastructure is needed.
+Browser history is not encrypted or synchronized between tabs/devices. Invalid
+stored data is ignored, not trusted or executed. Copy requires a supported secure
+context (HTTPS or localhost); denial or unavailability displays a manual-copy
+message. Frontend mathematical evaluation remains intentionally absent.
+Playwright, k6, Lighthouse and additional performance testing are excluded from
+the remaining roadmap, not deferred to a future delivery phase. No database,
+broker or authentication infrastructure was introduced.
 
 See [requirements](docs/REQUIREMENTS.md), [architecture](docs/ARCHITECTURE.md) and
 [non-blocking review findings](docs/REVIEW.md). Assessment requirements remain
 reported rather than independently verified against the original assignment.
 
-## Delivery verification
+## Remaining delivery roadmap
 
+The functional integration and focused-Enter regression are complete. Verification
+uses existing unit/integration tests, quality gates and manual browser checks
+against Go. The Enter correction passed 244 frontend tests and all existing
+frontend gates; the browser returned 20 for `(2+3)×4` with different buttons focused.
+See `PROMPTS.md` for actual RED/GREEN and verification evidence.
+
+Only acceptance and explicitly authorized delivery remain for this work. No
+Playwright, k6, Lighthouse, additional performance testing or new dependency is
+planned. Commit, push and pull request creation require separate authorization.
+
+## Historical Phase 2 delivery verification
+
+These measurements describe Phase 2, not the later expression/frontend suites.
 On 2026-11-26, the final backend suite passed **394 cases** with no failures or
 skips. Fresh coverage was **98.4% overall** (executable 90.3%, calculator and HTTP
 transport 100%). Race detection, vet, build, formatting and contract checks passed.
