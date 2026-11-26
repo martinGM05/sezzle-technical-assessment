@@ -86,6 +86,22 @@ limitations apply. This is not a monetary calculation engine.
 error codes and status codes: 400, 403, 404, 405, 413, 415, 422 and 500. Request
 bodies are limited to one MiB. HEAD never returns a body, including for errors.
 
+## Expression API
+
+```bash
+curl -i http://localhost:8080/api/v1/expressions \
+  -H 'Content-Type: application/json' \
+  -d '{"expression":"200 * 15% + sqrt(9 + 7)"}'
+# 200: {"result":34}
+```
+
+Supports `+`, `-`, `*`, `/`, `^`, `sqrt(...)`, postfix `%`, unary signs and nested
+parentheses. Power is right-associative: `2^3^2 = 512`; `-2^2 = -4` and `2^-3 =
+0.125`. Percent always divides by 100, not contextual financial percentage.
+Expressions are limited to 4096 ASCII bytes and 64 nested recursive constructs.
+See [grammar, errors and mathematical assumptions](docs/EXPRESSIONS.md).
+The frontend is not connected to this endpoint in Phase 4.
+
 ## Backend quality checks
 
 From `backend/`:
@@ -141,6 +157,8 @@ non-root runtime. It has no shell or curl; check health externally through
 external supervisor sends SIGKILL. Docker Compose is not required for the backend.
 
 ## Current scope
+
+Phase 4 adds the bounded Go expression engine and its HTTP endpoint.
 
 Phase 2 provides the Go calculator API, contract, behavioral tests, lifecycle,
 backend container and quality pipeline. The frontend now includes the design

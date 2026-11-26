@@ -51,7 +51,7 @@ no frontend or production proxy configuration was added in Phase 2.
 
 ## API and numerical policy
 
-A single synchronous `POST /api/v1/calculations` handles seven operations. Add,
+`POST /api/v1/calculations` handles seven operations. Add,
 subtract, multiply, divide and power require two operands; square root and
 percentage require one. Percentage means operand / 100, and finite 0^0 is 1.
 Underflow follows IEEE 754 rounding; overflow and non-finite results are rejected.
@@ -112,3 +112,29 @@ against the [official v4.6.2 tag](https://api.github.com/repos/actions/upload-ar
 `ea165f8d65b6e75b540449e92b4886f43607fa02`. Existing backend checkout/setup-go pins
 were verified as v5.1.0/v6.5.0. Local step execution validates commands and reports,
 but cannot prove GitHub runner execution or artifact upload; no push was authorized.
+
+## Expression engine (Phase 4)
+
+`POST /api/v1/expressions` adds compound expressions without changing the existing
+calculations route. The OpenAPI addition and [explicit grammar](EXPRESSIONS.md)
+were recorded before production implementation in this phase. The earlier
+contract-first deviation above remains historical and is not rewritten.
+
+`internal/expression` tokenizes ASCII input, uses recursive descent to build a
+small syntax tree, then evaluates it through `calculator.Calculate`. This keeps
+arithmetic/domain errors in one place and rejects incomplete syntax before any
+arithmetic is performed. The grammar gives postfix percentage the highest
+operator precedence and gives power a unary right operand: power is
+right-associative while `-2^2` remains `-(2^2)`.
+
+Input length (4096 bytes) bounds total tokens/tree size and flat-chain evaluation;
+a separate 64-level recursion limit bounds parentheses, signs, function calls
+and exponent chains during parsing. There is no shared mutable evaluation state,
+external interpreter, dynamic evaluation, or new dependency. These bounded local
+computations do not require workers, cancellation goroutines or timeouts of their
+own. Existing server timeouts still apply.
+
+Both endpoints reuse the same bounded strict JSON-object reader, media policy,
+CORS and Problem Details writer; their DTO and domain validation remain separate.
+Expression syntax/limit errors add new codes only to the expression response
+schema. Calculation schemas and arithmetic error semantics remain unchanged.

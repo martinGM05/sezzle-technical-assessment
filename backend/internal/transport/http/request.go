@@ -6,6 +6,7 @@ import (
 	"io"
 	"mime"
 	"net/http"
+	"slices"
 
 	"github.com/martinGM05/sezzle-technical-assessment/backend/internal/calculator"
 )
@@ -18,33 +19,9 @@ type request struct {
 }
 
 func decodeRequest(w http.ResponseWriter, r *http.Request) (string, []float64, bool) {
-	mediaType, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
-	if err != nil || mediaType != mediaTypeJSON {
-		writeProblem(w, http.StatusUnsupportedMediaType, "Content-Type must be application/json.", codeUnsupportedMediaType)
+	fields, valid := decodeObject(w, r, "operation", "operands")
+	if !valid {
 		return "", nil, false
-	}
-
-	body, readErr := io.ReadAll(http.MaxBytesReader(w, r.Body, maxRequestBodyBytes))
-	if readErr != nil {
-		var sizeErr *http.MaxBytesError
-		if errors.As(readErr, &sizeErr) {
-			writeProblem(w, http.StatusRequestEntityTooLarge, "Request body exceeds 1048576 bytes.", codeBodyTooLarge)
-		} else {
-			writeProblem(w, http.StatusBadRequest, "Request body could not be read.", codeMalformedJSON)
-		}
-		return "", nil, false
-	}
-
-	var fields map[string]json.RawMessage
-	if err := json.Unmarshal(body, &fields); err != nil || fields == nil {
-		writeProblem(w, http.StatusBadRequest, "Request body must be valid JSON.", codeMalformedJSON)
-		return "", nil, false
-	}
-	for key := range fields {
-		if key != "operation" && key != "operands" {
-			writeProblem(w, http.StatusBadRequest, "Request contains an unknown property.", codeMalformedJSON)
-			return "", nil, false
-		}
 	}
 
 	var req request
@@ -74,4 +51,39 @@ func decodeRequest(w http.ResponseWriter, r *http.Request) (string, []float64, b
 		operands[i] = *v
 	}
 	return *req.Operation, operands, true
+}
+
+// decodeObject shares transport validation without coupling the endpoint DTOs.
+// Reading the bounded complete body preserves size-before-JSON error precedence.
+func decodeObject(w http.ResponseWriter, r *http.Request, allowedFields ...string) (map[string]json.RawMessage, bool) {
+	mediaType, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	if err != nil || mediaType != mediaTypeJSON {
+		writeProblem(w, http.StatusUnsupportedMediaType, "Content-Type must be application/json.", codeUnsupportedMediaType)
+		return nil, false
+	}
+
+	body, readErr := io.ReadAll(http.MaxBytesReader(w, r.Body, maxRequestBodyBytes))
+	if readErr != nil {
+		var sizeErr *http.MaxBytesError
+		if errors.As(readErr, &sizeErr) {
+			writeProblem(w, http.StatusRequestEntityTooLarge, "Request body exceeds 1048576 bytes.", codeBodyTooLarge)
+		} else {
+			writeProblem(w, http.StatusBadRequest, "Request body could not be read.", codeMalformedJSON)
+		}
+		return nil, false
+	}
+
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(body, &fields); err != nil || fields == nil {
+		writeProblem(w, http.StatusBadRequest, "Request body must be valid JSON.", codeMalformedJSON)
+		return nil, false
+	}
+	for key := range fields {
+		if !slices.Contains(allowedFields, key) {
+			writeProblem(w, http.StatusBadRequest, "Request contains an unknown property.", codeMalformedJSON)
+			return nil, false
+		}
+	}
+
+	return fields, true
 }

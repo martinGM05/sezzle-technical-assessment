@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"unicode/utf8"
 )
 
 // The contract is JSON-form YAML 1.2. This deliberately checks only the JSON
@@ -112,7 +113,7 @@ func validateSchemaSubset(doc map[string]any, schema map[string]any, depth int) 
 			valid = true
 		case "additionalProperties":
 			_, valid = value.(bool)
-		case "minimum", "maximum", "minItems", "maxItems", "minLength":
+		case "minimum", "maximum", "minItems", "maxItems", "minLength", "maxLength":
 			number, ok := value.(float64)
 			valid = ok && !math.IsNaN(number) && !math.IsInf(number, 0)
 			if keyword != "minimum" && keyword != "maximum" {
@@ -136,7 +137,7 @@ func checkSchemaValue(doc map[string]any, schema map[string]any, value any) erro
 	}
 	for keyword := range schema {
 		switch keyword {
-		case "description", "type", "const", "enum", "oneOf", "additionalProperties", "required", "properties", "minItems", "maxItems", "items", "minimum", "maximum", "minLength":
+		case "description", "type", "const", "enum", "oneOf", "additionalProperties", "required", "properties", "minItems", "maxItems", "items", "minimum", "maximum", "minLength", "maxLength":
 		default:
 			return fmt.Errorf("unsupported schema keyword %s", keyword)
 		}
@@ -212,6 +213,9 @@ func checkSchemaValue(doc map[string]any, schema map[string]any, value any) erro
 		}
 		if min, ok := schema["minLength"].(float64); ok && len(str) < int(min) {
 			return fmt.Errorf("string too short")
+		}
+		if max, ok := schema["maxLength"].(float64); ok && utf8.RuneCountInString(str) > int(max) {
+			return fmt.Errorf("string too long")
 		}
 	case "number", "integer":
 		number, ok := value.(float64)
@@ -298,7 +302,7 @@ func TestHTTPOpenAPIRequestContract(t *testing.T) {
 		t.Fatal("expected OpenAPI 3.1.0")
 	}
 	paths := contractObject(t, doc, "paths")
-	if len(paths) != 2 {
+	if len(paths) != 3 {
 		t.Fatalf("unexpected endpoint count %d", len(paths))
 	}
 	post := contractObject(t, paths, "/api/v1/calculations", "post")
