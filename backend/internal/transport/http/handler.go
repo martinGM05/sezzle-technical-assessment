@@ -10,6 +10,7 @@ import (
 const (
 	healthPath       = "/health"
 	calculationsPath = "/api/v1/calculations"
+	expressionsPath  = "/api/v1/expressions"
 )
 
 // NewHandler returns the calculator HTTP boundary. Cross-origin requests are
@@ -37,7 +38,7 @@ func NewHandler(allowedOrigins ...string) http.Handler {
 		switch r.URL.Path {
 		case healthPath:
 			allow = "GET, HEAD"
-		case calculationsPath:
+		case calculationsPath, expressionsPath:
 			allow = "POST"
 		default:
 			writeProblem(w, http.StatusNotFound, "Route does not exist.", codeNotFound)
@@ -56,6 +57,10 @@ func NewHandler(allowedOrigins ...string) http.Handler {
 		if r.URL.Path == healthPath {
 			w.Header().Set("Content-Type", mediaTypeJSON)
 			writeJSON(w, healthResponse{Status: "ok"})
+			return
+		}
+		if r.URL.Path == expressionsPath {
+			evaluateExpression(w, r)
 			return
 		}
 		calculate(w, r)

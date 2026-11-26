@@ -1732,3 +1732,92 @@ Report the commit hash, push result, and PR creation URL.
 
 Do not merge or begin the next phase.
 ```
+
+
+## Phase 4 expression engine — literal user prompt
+
+```text
+# Phase 4 — Expression Engine
+
+Branch: `feat/expression-engine`.
+
+Follow AGENTS.md and existing backend architectural standards.
+
+Implement mathematical expression evaluation in Go.
+
+## Scope
+
+- Add `POST /api/v1/expressions`.
+- Update OpenAPI before implementing the endpoint.
+- Implement a lightweight tokenizer, parser, and evaluator under `internal/expression`.
+- Reuse the existing calculator domain for mathematical operations.
+- Support all seven operations, operator precedence, nested parentheses, unary signs, decimals, right-associative exponentiation, and postfix percentage.
+- Preserve the existing calculations endpoint.
+- Use the Go standard library only.
+
+## TDD
+
+Define and implement behavioral tests before production code.
+
+Cover at least:
+
+| Expression | Expected |
+|---|---|
+| 2 + 3 * 4 | 14 |
+| (2 + 3) * 4 | 20 |
+| 2 ^ 3 ^ 2 | 512 |
+| sqrt(9 + 7) | 4 |
+| 200 * 15% | 30 |
+| -5 + 3 | -2 |
+| -2 ^ 2 | -4 |
+| (-2) ^ 2 | 4 |
+| 2 ^ -3 | 0.125 |
+| 10 / (5 - 5) | Division by zero |
+| sqrt(-1) | Domain error |
+| (2 + 3 | Syntax error |
+| 2 + * 3 | Syntax error |
+
+Also test empty expressions, invalid tokens, excessive nesting, expression length limits, non-finite results, and HTTP contract behavior.
+
+Follow genuine RED-GREEN-REFACTOR iterations.
+
+## Quality
+
+Keep the implementation readable, defensive, deterministic, stateless, and concurrency-safe.
+
+Define explicit grammar, precedence, and resource limits.
+
+Use existing RFC 9457 error handling.
+
+Do not use dynamic code evaluation or unnecessary abstractions.
+
+Run existing backend quality gates and verify OpenAPI parity.
+
+Document mathematical assumptions and record the actual prompt in PROMPTS.md.
+
+Complete the scope without additional planning or intermediate progress-only reports unless a genuine blocker occurs.
+
+Do not modify the frontend, commit, or push.
+```
+
+## Phase 4 commit and push authorization — literal user prompt
+
+```text
+Phase 4 is approved.
+
+Verify the effective Git author and committer email is mtn.gm05@gmail.com.
+
+Review the final diff for secrets, unrelated changes, and generated artifacts.
+
+Record this authorization in PROMPTS.md.
+
+I authorize committing and pushing the approved changes to feat/expression-engine.
+
+Commit message:
+
+feat(api): add mathematical expression evaluation
+
+Report the commit hash, push result, and PR creation URL.
+
+Do not merge or begin the next phase.
+```

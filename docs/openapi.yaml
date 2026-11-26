@@ -336,6 +336,197 @@
           }
         }
       }
+    },
+    "/api/v1/expressions": {
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExpressionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Finite result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalculationResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid JSON syntax or root structure, unknown property, trailing JSON, or expression of a non-string type.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem400"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin, requested method, or requested headers denied by CORS policy.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem403"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown route; applies to paths outside this specification.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem404"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Unsupported method; Allow identifies supported resource methods.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem405"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "POST for expressions."
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds 1048576 bytes, including trailing whitespace.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem413"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Missing, malformed, or unsupported Content-Type. application/json with media parameters is accepted.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem415"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Missing/null/empty expression, syntax, length or nesting failure, invalid mathematical domain or non-finite result.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpressionProblem422"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected internal failure; no implementation details are exposed.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem500"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Evaluate a bounded mathematical expression",
+        "description": "ASCII expression, at most 4096 bytes (including whitespace), recursion nesting at most 64. Grammar and precedence: docs/EXPRESSIONS.md. All syntax is validated before arithmetic; calculator domain errors propagate unchanged. No implicit multiplication, variables, or dynamic evaluation. Missing/null/empty expression is INVALID_EXPRESSION; invalid tokens or grammar are SYNTAX_ERROR; length or nesting overflow is EXPRESSION_LIMIT; out-of-range numeric literals are INVALID_RESULT. JSON duplicate member names retain the last value, as in calculations."
+      },
+      "options": {
+        "summary": "Restricted browser preflight",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Access-Control-Request-Method",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Access-Control-Request-Headers",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Allowed preflight; no body. Exact allowlisted origin, resource methods, and Content-Type only. No credentials.",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin, requested method, or requested headers denied by CORS policy.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem403"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected internal failure; no implementation details are exposed.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem500"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -822,6 +1013,61 @@
             }
           }
         ]
+      },
+      "ExpressionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expression"
+        ],
+        "properties": {
+          "expression": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "description": "ASCII mathematical expression; whitespace counts toward the 4096-byte limit. See operation description for syntax and depth restrictions."
+          }
+        }
+      },
+      "ExpressionProblem422": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "title",
+          "status",
+          "detail",
+          "code"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "about:blank"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "integer",
+            "const": 422
+          },
+          "detail": {
+            "type": "string",
+            "minLength": 1
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "INVALID_EXPRESSION",
+              "SYNTAX_ERROR",
+              "EXPRESSION_LIMIT",
+              "INVALID_OPERANDS",
+              "DIVISION_BY_ZERO",
+              "INVALID_RESULT"
+            ]
+          }
+        }
       }
     }
   }
