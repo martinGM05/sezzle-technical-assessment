@@ -24,8 +24,6 @@ available.
 
 - Exponentiation, square root, and percentage operations.
 - Docker support.
-- Performance testing, provided it does not compromise the recommended time
-  budget.
 
 ## Reported quality expectations
 
@@ -39,8 +37,22 @@ These are quality decisions, not independently verified assessment requirements:
 - An OpenAPI contract before API implementation.
 - RFC 9457 Problem Details responses.
 - Strict JSON decoding, request limits, timeouts, and explicit CORS origins.
-- React Testing Library, Playwright, MSW, k6, Docker Compose, and GitHub Actions.
+- React Testing Library and GitHub Actions.
+- MSW and Docker Compose only if separately justified and approved.
 - Structured logging and graceful shutdown.
 
 The project will adopt these only when they remain proportionate to the
 assessment scope and time budget.
+
+## Remaining roadmap and scope exclusions
+
+Playwright, k6, Lighthouse and additional performance testing are optional
+engineering improvements, not reported assessment requirements. They are removed
+from the remaining implementation roadmap, rather than deferred deliverables.
+No new browser-testing dependency, load-test suite, performance audit or benchmark
+work is planned. Historical prompts and prior verification evidence remain intact.
+
+The keyboard regression is complete using the existing Vitest, React Testing
+Library and user-event setup, plus manual Chrome verification against the real Go
+backend. Existing frontend/backend quality gates and coverage reporting remain
+in scope; no additional tooling is needed to finish this correction.

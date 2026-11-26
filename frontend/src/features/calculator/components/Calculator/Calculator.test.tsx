@@ -28,29 +28,41 @@ describe('Calculator', () => {
     expect(screen.getByLabelText('Expression')).toHaveTextContent('0')
     expect(screen.getByLabelText('Result')).toHaveTextContent('—')
   })
-  it.each([
-    { state: 'loading', loading: true, disabled: false },
-    { state: 'disabled', loading: false, disabled: true },
-  ])('blocks all controls when $state', async ({ loading, disabled }) => {
+  it.each([{ state: 'disabled', loading: false, disabled: true }])(
+    'blocks all controls when $state',
+    async ({ loading, disabled }) => {
+      const user = userEvent.setup()
+      const onAction = vi.fn()
+      render(
+        <Calculator
+          {...initial}
+          onAction={onAction}
+          loading={loading}
+          disabled={disabled}
+        />,
+      )
+      for (const button of screen.getAllByRole('button')) {
+        expect(button).toBeDisabled()
+        await user.click(button)
+      }
+      expect(onAction).not.toHaveBeenCalled()
+      expect(screen.getByTestId('calculator-display')).toHaveAttribute(
+        'aria-busy',
+        String(loading),
+      )
+    },
+  )
+  it('keeps Clear available to cancel a pending calculation without enabling other controls', async () => {
     const user = userEvent.setup()
     const onAction = vi.fn()
-    render(
-      <Calculator
-        {...initial}
-        onAction={onAction}
-        loading={loading}
-        disabled={disabled}
-      />,
-    )
+    render(<Calculator {...initial} loading onAction={onAction} />)
+    const clear = screen.getByRole('button', { name: 'Clear' })
+    expect(clear).toBeEnabled()
     for (const button of screen.getAllByRole('button')) {
-      expect(button).toBeDisabled()
-      await user.click(button)
+      if (button !== clear) expect(button).toBeDisabled()
     }
-    expect(onAction).not.toHaveBeenCalled()
-    expect(screen.getByTestId('calculator-display')).toHaveAttribute(
-      'aria-busy',
-      String(loading),
-    )
+    await user.click(clear)
+    expect(onAction).toHaveBeenCalledExactlyOnceWith({ type: 'clear' })
   })
   it('updates controlled values, selected operations and recovery states', () => {
     const { rerender } = render(

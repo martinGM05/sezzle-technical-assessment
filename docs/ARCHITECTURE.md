@@ -138,3 +138,36 @@ Both endpoints reuse the same bounded strict JSON-object reader, media policy,
 CORS and Problem Details writer; their DTO and domain validation remain separate.
 Expression syntax/limit errors add new codes only to the expression response
 schema. Calculation schemas and arithmetic error semantics remain unchanged.
+
+
+## Functional frontend integration (Phase 5)
+
+The UI remains controlled and presentation-oriented. `App` composes focused
+calculator, keyboard, history, theme and clipboard hooks; shared components have
+no network or mathematical domain dependencies. The fetch client posts to the
+relative `/api/v1/expressions` route. Symbol normalization only translates visual
+`−`, `×`, `÷` and `√` into supported ASCII: syntax, precedence, limits and evaluation
+remain exclusively in Go. No new dependency or backend change was necessary.
+
+The client validates finite successful results and known RFC 9457 domain errors.
+Unexpected HTTP bodies and network failures receive safe local messages. An
+AbortController cancels obsolete work, while request identity guards both result
+updates and cleanup: an old completion cannot unlock a newer submission. A
+synchronous ref closes the pre-render duplicate-click gap. Clear stays enabled
+while loading, and edits, history reuse and unmount invalidate pending requests.
+Only current successful responses add history. Display uses the returned number's
+string representation, preserving negative zero without introducing rounding.
+
+History and theme use separate versioned localStorage keys (`sezzle.history.v1`
+and `sezzle.theme.v1`). Reads validate their shape and bounds, and failures retain
+usable in-memory state with a warning. History is capped at 100 entries; writes
+occur in explicit actions, not mount effects, avoiding StrictMode duplicates.
+Deletion never clears unrelated storage keys. Stored calculations are plaintext,
+origin-specific and not synchronized across tabs. Clipboard access is requested
+only on Copy; unavailable or denied access offers manual copying instead.
+
+The development-only Vite proxy accepts `API_PROXY_TARGET`, defaulting to the
+local Go service. Production uses same-origin routing rather than embedding an
+API hostname. The existing Go origin allowlist remains restrictive: configure
+the public frontend origin because same-origin POST requests may include Origin,
+and proxying alone does not remove it. No CORS bypass was introduced.

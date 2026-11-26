@@ -8,6 +8,7 @@ import './CalculatorKeypad.css'
 export type CalculatorKeypadProps = {
   onAction: (action: CalculatorAction) => void
   disabled?: boolean
+  clearEnabled?: boolean
 }
 
 type KeyDefinition = Pick<
@@ -143,6 +144,7 @@ const keys: KeyDefinition[] = [
 export function CalculatorKeypad({
   onAction,
   disabled = false,
+  clearEnabled = false,
 }: CalculatorKeypadProps) {
   return (
     <div
@@ -157,7 +159,7 @@ export function CalculatorKeypad({
           {...key}
           testId={`calculator-key-${id}`}
           onAction={onAction}
-          disabled={disabled}
+          disabled={disabled && !(clearEnabled && key.action.type === 'clear')}
         />
       ))}
     </div>

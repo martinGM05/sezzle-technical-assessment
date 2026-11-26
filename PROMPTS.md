@@ -1821,3 +1821,210 @@ Report the commit hash, push result, and PR creation URL.
 
 Do not merge or begin the next phase.
 ```
+
+
+## Phase 5 functional integration — literal user prompt
+
+```text
+# Phase 5 — Functional Integration
+
+Branch: `feat/calculator-integration`.
+
+Follow AGENTS.md, the existing component architecture, and the OpenAPI contract.
+
+## Scope
+
+Connect the existing calculator UI to the Go backend.
+
+- Implement a typed API client using native fetch.
+- Use POST /api/v1/expressions for expression evaluation.
+- Normalize visual mathematical symbols into the supported ASCII syntax.
+- Implement calculator state and interactions through focused custom hooks.
+- Support all seven operations, parentheses, decimals, clear, backspace, and equals.
+- Support physical keyboard input.
+- Handle loading, RFC 9457 errors, network failures, cancellation, and stale responses.
+- Prevent duplicate submissions.
+- Connect history actions: reuse, copy, delete, and clear.
+- Persist successful calculations and theme preferences using localStorage.
+- Handle invalid or unavailable localStorage safely.
+- Configure local API communication without hardcoding production URLs.
+
+## TDD
+
+Define behavioral tests before implementing each responsibility.
+
+Cover API communication, symbol normalization, calculator interactions, keyboard input, error recovery, asynchronous state, history, and persistence.
+
+Use genuine RED-GREEN-REFACTOR iterations and the existing testing tools.
+
+## Constraints
+
+Preserve the approved UI, CSS architecture, accessibility, and stable data-testid attributes.
+
+Do not duplicate mathematical evaluation in the frontend.
+
+Do not introduce unnecessary dependencies or modify the backend without identifying a concrete defect.
+
+Run all frontend quality gates and verify integration against the real Go backend.
+
+Record actual prompts and test results in PROMPTS.md.
+
+Proceed directly with implementation without additional planning.
+
+Do not commit or push.
+```
+
+
+## Phase 5 execution evidence — assistant notes, not user prompts
+
+Observed on 2026-11-26 using Node 22.18.0, pnpm 12.9.1 and Go 1.24.2
+on macOS arm64. Baseline: 98 frontend tests passing. These are actual observed
+iterations, not reconstructed historical RED failures.
+
+| Responsibility | Observed RED | Observed GREEN |
+| --- | --- | --- |
+| Symbol normalization | Two behavior failures with identity implementation | 3 tests |
+| Native fetch client | 17 failures with unimplemented client | 17 tests |
+| Storage, history and theme | Each responsibility first failed on its missing module | 4 + 32 + 15 tests |
+| Calculator state | Missing hook, then one cross-realm AbortError failure | 21 tests; later one additional passing stale-success characterization |
+| Keyboard | Missing hook | 24 tests |
+| Clipboard | Missing hook | 5 tests |
+| App composition | 15 failing assertions before wiring (new integration plus adapted existing tests) | 26 tests |
+| Loading cancellation control | Clear incorrectly disabled during loading | 18 calculator/keypad tests |
+| Development proxy | Missing proxy configuration | 2 tests |
+
+Tests and implementations were completed by responsibility, with regression runs
+between increments. Existing behavior was retained; the additional stale-success
+case passed immediately and is characterization, not a claimed RED cycle.
+Formatting initially flagged App.test.tsx; it was corrected before final checks.
+
+Final commands from frontend/ all exited 0:
+
+- `pnpm format:check`
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm test`: **235 tests, 24 files passed**.
+- `pnpm test:coverage`: **235 passed**; statements **99.66% (302/303)**,
+  branches **98% (245/250)**, functions **100% (78/78)**,
+  lines **100% (276/276)**. Reports are generated under ignored coverage/.
+- `pnpm build`: production build passed, 52 modules; JS 239.05 kB
+  (74.60 kB gzip), CSS 12.51 kB (2.71 kB gzip).
+
+An isolated independent functional verification also passed 240 tests (the then
+234 repository tests plus six temporary probes). It checked stale completions,
+duplicate submissions, cancellation/unmount, storage failures, key isolation and
+native keyboard activation. No product defect was found. A temporary probe's
+incorrect accessible-name query was corrected in the probe, not production code.
+This was functional verification, not the disabled native review workflow.
+
+Real integration used Vite at 127.0.0.1:5180 and Go at port 8080 with that frontend
+origin explicitly allowed. The production API client through the actual proxy
+and backend passed 12 successful expressions and five actual RFC 9457 failures
+(division by zero, negative square root, two syntax errors and overflow).
+Chrome verified precedence, square root, physical digit/Enter/Clear input,
+division-error recovery, copying and history/theme persistence across reload.
+Both light and dark themes were inspected. Native automation of shifted operator
+keys produced different characters under the OS keyboard layout; buttons were
+used for those browser calculations, and keyboard mappings were covered in unit
+tests. No mobile browser emulation, automated E2E runner, remote CI or performance
+benchmark was claimed in this phase.
+
+No backend source, CSS, design references, package manifests or lockfile changed.
+No commit or push was performed. The API remains the sole mathematical evaluator.
+
+
+## Phase 5 keyboard regression — literal user prompt
+
+```text
+Manual testing revealed a keyboard interaction bug.
+
+Steps to reproduce:
+
+1. Enter `(2 + 3) × 4`.
+2. Press Enter on the physical keyboard.
+3. The expression is cleared without displaying a result.
+4. The same expression works correctly when clicking the equals button.
+
+Expected behavior: pressing Enter must evaluate the expression and display 20, consistently with clicking equals.
+
+- Reproduce the issue in a real browser.
+- Identify the root cause, including native button activation, focus, and keyboard event propagation.
+- Write a failing regression test before fixing the implementation.
+- Verify Enter behavior after interacting with different calculator buttons.
+- Ensure exactly one API request is issued per evaluation.
+- Preserve native keyboard accessibility for other controls.
+- Run existing frontend quality gates and verify the fix against the real backend.
+
+Record this prompt in PROMPTS.md.
+
+Do not commit or push.
+```
+
+
+### Keyboard regression execution evidence — assistant notes
+
+Chrome reproduction against the real backend on 2026-11-26: after clicking
+Clear, typing 7 and pressing physical Enter, the expression reset to its empty
+placeholder. After clicking `(2+3)×4`, Enter with Digit 4 focused appended another
+4. The keydown listener returned early for any button Enter, so the event's native
+activation generated a click on the retained focus target; React onClick then
+cleared/edited instead of submitting. This was a focus/default-action bug, not
+backend parsing or mathematical evaluation.
+
+Tests were changed before production: 8 failed and 38 passed across the two
+focused files. Seven focus scenarios failed to display 20, and the hook regression
+observed an unwanted native click. The Equals-focused characterization already
+passed. Removing the button Enter exemption and preventing default before repeat
+suppression produced 46 passing tests. Propagation is not stopped; Space retains
+native activation and history/theme/editable controls retain their own keys.
+Eight App cases assert the unchanged expression, result 20, exactly one API call
+and exactly one saved history entry. An independent read-only functional check
+also passed those 46 tests; no native review was started.
+
+The first test command was mistakenly run from the repository root and could not
+find Vitest; rerunning from frontend/ produced the behavioral RED results above.
+The first full gate run caught an unsupported RTL getByRole `exact` option in the
+new test; removing it preserved the default exact string-name match without any
+type assertion. All gates then passed from frontend/: format:check, lint,
+typecheck, test, test:coverage and build. Final result: 244 tests in 24 files;
+coverage 99.66% statements (301/302), 97.95% branches (240/245), 100% functions
+(78/78), and 100% lines (275/275). git diff --check also passed.
+
+Real Chrome/Go verification after the fix displayed 20 for `(2+3)×4` when Enter
+was pressed with Backspace, Digit 4 and Clear focused. Clear focus was explicitly
+confirmed after Shift+Tab navigation before Enter; the expression stayed intact.
+No backend, dependency, CSS, commit or push changes were made.
+
+
+## Roadmap scope reduction — literal user prompt
+
+```text
+Remove Playwright, k6, Lighthouse, and additional performance testing from the remaining implementation roadmap.
+
+These are optional engineering improvements, not assessment requirements.
+
+Complete the current keyboard regression fix using the existing testing tools and manual browser verification.
+
+Update the roadmap accordingly without altering historical prompts.
+
+Do not introduce additional dependencies or expand the project scope.
+```
+
+
+## Phase 5 delivery authorization — literal user prompt
+
+```text
+Phase 5 is approved.
+
+Verify the final diff and personal Git identity. Record this authorization in PROMPTS.md.
+
+I authorize committing and pushing the approved changes to feat/calculator-integration.
+
+Commit message:
+
+feat(calculator): integrate expression API and persistent history
+
+Report the commit hash, push result, and PR creation URL.
+
+Do not merge or begin the next phase.
+```

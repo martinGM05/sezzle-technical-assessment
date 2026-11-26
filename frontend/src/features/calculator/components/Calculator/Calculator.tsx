@@ -67,7 +67,11 @@ export function Calculator({
           />
         </div>
         <div className="calculator__keypad">
-          <CalculatorKeypad onAction={onAction} disabled={controlsDisabled} />
+          <CalculatorKeypad
+            onAction={onAction}
+            disabled={controlsDisabled}
+            clearEnabled={loading && !disabled}
+          />
         </div>
       </div>
     </section>
