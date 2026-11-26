@@ -1,249 +1,197 @@
-# Sezzle Technical Assessment
+# Sezzle Calculator
 
-A full-stack calculator being built with React, TypeScript, and Go.
+React/TypeScript UI and a stateless Go REST API. Seven arithmetic operations,
+compound expressions, keyboard input, light/dark/system themes and local history.
+All mathematical parsing and evaluation happens in Go.
 
-## Prerequisites
+## Quick Start
 
-- Node.js 22.18.0 (see `.nvmrc`)
-- pnpm 12.9.1
-- Go 1.24.2
-
-## Setup
+**Docker is the recommended setup.** Install Docker Engine/Desktop with Docker
+Compose v2; no local Node.js or Go installation is needed. Repository access is
+required because the repository is private.
 
 ```bash
+git clone --branch chore/final-delivery https://github.com/martinGM05/sezzle-technical-assessment.git
+cd sezzle-technical-assessment
+docker compose up --build
+```
+
+Open **http://localhost:8088** (or **http://127.0.0.1:8088**).
+To shut down, press **Ctrl+C**, then remove the containers and networks:
+
+```bash
+docker compose down
+```
+
+### Docker health checks and configuration
+
+For detached startup and health verification:
+
+```bash
+docker compose up --build -d --wait
+docker compose ps
+curl -fsS http://localhost:8088/healthz # Nginx
+curl -fsS http://localhost:8088/health  # Go through the proxy
+```
+
+Only Nginx is published, on loopback; Go uses an internal network. Both runtimes
+are non-root and read-only. The frontend health check covers Nginx and Go. After
+an outage, `--wait` can fail while a previously unhealthy container awaits its
+next probe; check `docker compose ps` and the health URLs for recovery.
+
+For another port, change the exact allowed origins too:
+
+```bash
+APP_PORT=8090 ALLOWED_ORIGINS=http://localhost:8090,http://127.0.0.1:8090 \
+  docker compose up --build -d --wait
+```
+
+Nginx preserves Origin and the API enforces the allowlist even for same-origin
+POSTs. CORS is not authentication. Public deployment requires explicit TLS,
+bind-address and origin configuration; this setup is local by default.
+
+## Local development without Docker
+
+Pinned tools: Node **22.18.0** (`.nvmrc`), pnpm **12.9.1** (`packageManager`),
+Go **1.24.2** (`backend/go.mod`). Select Node with `nvm use` or your version manager.
+
+```bash
+npm install --global pnpm@12.9.1
 cd frontend
 pnpm install --frozen-lockfile
 ```
 
-## Run the integrated application locally
-
-Use two terminals from the repository root:
+Start these in separate terminals, each from the repository root:
 
 ```bash
-# Terminal 1
 cd backend
 ALLOWED_ORIGINS=http://127.0.0.1:5173 go run ./cmd/api
 ```
 
 ```bash
-# Terminal 2
 cd frontend
 pnpm dev --host 127.0.0.1 --port 5173 --strictPort
 ```
 
-Open `http://127.0.0.1:5173`. Vite proxies `/api` to `http://127.0.0.1:8080`.
-Set `API_PROXY_TARGET` when starting Vite to use a different backend target.
-Changing the frontend host or port also requires updating Go's `ALLOWED_ORIGINS`.
-The proxy preserves the browser Origin header; it does not bypass the backend
-allowlist. Production needs a same-origin reverse proxy for `/api`; the browser
-client contains no production hostname. Vite's development proxy is not a
-production server or a `pnpm preview` proxy.
+Open http://127.0.0.1:5173. Vite proxies `/api` to Go on port 8080;
+`API_PROXY_TARGET` overrides that target. Update `ALLOWED_ORIGINS` when changing
+the frontend host/port. The browser has no hardcoded production API URL.
+`pnpm preview` does not provide the development API proxy.
 
-### Keyboard and request behavior
+## Evaluate the application
 
-- Digits, `.`, parentheses and `+ - * / ^ %` enter expressions; `r` inserts `√(`.
-- `Enter` or `=` evaluates; `Backspace` removes a character; `Escape`/`Delete` clears.
-- Enter evaluates even when a calculator button retains focus; Space still
-  activates that button. Controls outside the calculator and editable fields
-  preserve their native keyboard behavior.
-- Clear remains available while loading and cancels the request. Editing or reusing
-  an expression also invalidates pending work. Duplicate pending submissions and
-  obsolete responses cannot create extra history entries or overwrite new state.
-- After a result, input continues editing the expression; use Clear to start over.
-  Results use the server's finite number without decimal rounding (including the
-  usual IEEE 754 representation limitations).
+- Try `(2+3)*4` → **20**, `2^3^2` → **512**, `sqrt(9+7)` → **4**,
+  `200*15%` → **30**, and `10/0` → a recoverable error.
+- Keyboard: digits, decimal point, parentheses and operators; `r` inserts `√(`.
+  Enter/`=` evaluates, Backspace edits, Escape/Delete clears. Enter evaluates with
+  any calculator button focused; Space activates it. Other controls remain native.
+- Clear cancels pending requests; duplicate submissions and stale responses are
+  guarded. Further input edits the expression; Clear starts over.
+- History saves successful results only. Reuse, copy, delete and confirmed clear
+  are available. Theme/history survive reload in browser localStorage, not Docker
+  volumes. History retains 100 entries and displays 20 at a time.
 
-## Frontend commands
-
-```bash
-pnpm dev
-pnpm build
-pnpm lint
-pnpm format:check
-pnpm typecheck
-pnpm test
-pnpm test:coverage
-```
-
-## Backend setup and execution
-
-The backend is an independent Go module with standard-library dependencies only.
-From the repository root:
-
-```bash
-cd backend
-go build -o bin/api ./cmd/api
-./bin/api
-```
-
-The server listens on port 8080. `Ctrl+C` (SIGINT) or SIGTERM initiates a graceful
-shutdown with a five-second deadline. Expiry closes active connections and exits
-with status 1; a clean shutdown exits with status 0. Startup failures also exit 1.
-
-For the planned same-origin reverse proxy deployment, configure the public origin:
-
-```bash
-ALLOWED_ORIGINS=https://calculator.example ./bin/api
-```
-
-The proxy may terminate HTTPS and forward HTTP to the backend. Explicit origins
-are required even when browser UI and API share one public origin: browsers can
-send Origin on same-origin POSTs. Comma-separated origins are supported; wildcard
-and invalid origins are not allowed. Empty configuration denies nonempty Origin
-headers. Forwarded headers never grant access. See [architecture](docs/ARCHITECTURE.md).
+Numbers use IEEE 754 `float64`, without decimal display rounding: `0.1+0.2` may
+show `0.30000000000000004`. Percentage means division by 100; finite `0^0 = 1`.
+Power is right-associative; `-2^2 = -4`, `(-2)^2 = 4`, `2^-3 = 0.125`.
+Overflow/non-finite results are rejected; underflow follows IEEE 754. This is not
+for monetary transactions: use decimal arithmetic or integer minor units for
+those. [Grammar and limits](docs/EXPRESSIONS.md) document the 4096-byte ASCII and
+64-level recursion bounds.
 
 ## API examples
 
+Use port 8088 through Compose, or 8080 when running Go directly:
+
 ```bash
-curl -i http://localhost:8080/health
-curl -I http://localhost:8080/health
-curl -i http://localhost:8080/api/v1/calculations \
-  -H 'Content-Type: application/json' \
-  -d '{"operation":"divide","operands":[10,2]}'
+curl -i http://localhost:8088/api/v1/expressions \
+  -H 'Content-Type: application/json' -d '{"expression":"(2+3)*4"}'
+# 200: {"result":20}
+
+curl -i http://localhost:8088/api/v1/calculations \
+  -H 'Content-Type: application/json' -d '{"operation":"divide","operands":[10,2]}'
 # 200: {"result":5}
 
-curl -i http://localhost:8080/api/v1/calculations \
-  -H 'Content-Type: application/json' \
-  -d '{"operation":"divide","operands":[10,0]}'
+curl -i http://localhost:8088/api/v1/expressions \
+  -H 'Content-Type: application/json' -d '{"expression":"10/0"}'
 # 422, application/problem+json:
 # {"type":"about:blank","title":"Unprocessable Content","status":422,
 #  "detail":"Cannot divide by zero.","code":"DIVISION_BY_ZERO"}
 ```
 
-Supported operation names are case-sensitive:
+`add`, `subtract`, `multiply`, `divide`, `power` take two operands; `sqrt` and
+`percentage` take one. [OpenAPI](docs/openapi.yaml) defines validation, status
+codes and RFC 9457 errors. Go owns the one-MiB body limit. Proxy outages may return
+Nginx 502/504 responses instead; the client displays a safe generic error.
 
-- `add`, `subtract`, `multiply`, `divide`, `power`: exactly two operands.
-- `sqrt`: exactly one non-negative operand.
-- `percentage`: exactly one operand, divided by 100.
+## Tests and reproducible coverage
 
-Examples: power `[2,3]` → 8; sqrt `[9]` → 3; percentage `[25]` → 0.25.
-Finite 0^0 is 1. Results use float64 without display rounding; IEEE 754 precision
-limitations apply. This is not a monetary calculation engine.
-
-[OpenAPI](docs/openapi.yaml) defines request/response schemas, arities, stable
-error codes and status codes: 400, 403, 404, 405, 413, 415, 422 and 500. Request
-bodies are limited to one MiB. HEAD never returns a body, including for errors.
-
-## Expression API
+Frontend, from `frontend/`:
 
 ```bash
-curl -i http://localhost:8080/api/v1/expressions \
-  -H 'Content-Type: application/json' \
-  -d '{"expression":"200 * 15% + sqrt(9 + 7)"}'
-# 200: {"result":34}
+pnpm format:check
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm test:coverage
+pnpm build
 ```
 
-Supports `+`, `-`, `*`, `/`, `^`, `sqrt(...)`, postfix `%`, unary signs and nested
-parentheses. Power is right-associative: `2^3^2 = 512`; `-2^2 = -4` and `2^-3 =
-0.125`. Percent always divides by 100, not contextual financial percentage.
-Expressions are limited to 4096 ASCII bytes and 64 nested recursive constructs.
-See [grammar, errors and mathematical assumptions](docs/EXPRESSIONS.md).
-The frontend evaluates expressions through this endpoint; it does not parse or
-evaluate mathematics locally.
-
-## Backend quality checks
-
-From `backend/`:
+Backend, from `backend/`:
 
 ```bash
 test -z "$(gofmt -l cmd internal)"
 go vet ./...
-go test -count=1 -race ./...
-go test -count=1 ./internal/transport/http -run 'Test(HTTPOpenAPI|OpenAPIHead|ContractChecker)'
-go build ./...
-```
-
-The full suite includes subprocess tests for real SIGINT/SIGTERM and startup
-failures. `go test -short ./...` skips those subprocess tests and is not the full
-quality gate. Coverage commands and artifacts are described below.
-
-## Backend coverage and CI
-
-Run the same coverage commands as CI from `backend/`:
-
-```bash
 mkdir -p coverage
 go test -count=1 -race -covermode=atomic -coverprofile=coverage/coverage.out ./...
 go tool cover -func=coverage/coverage.out | tee coverage/summary.txt
 go tool cover -html=coverage/coverage.out -o coverage/index.html
+go test -count=1 ./internal/transport/http -run 'Test(HTTPOpenAPI|OpenAPIHead|ContractChecker)'
+go build ./...
 ```
 
-Generated reports are ignored by Git. CI publishes the measured function/total
-coverage in its job summary and uploads profile, text and HTML reports as
-`backend-coverage`. Backend and frontend jobs run independently. External actions
-are SHA-pinned; the backend Go version comes from `backend/go.mod`. Full CI must
-still be observed on GitHub after an authorized push; local checks are not a
-remote CI result.
-
-## Container
-
-From the repository root:
+Do not use `-short` for final checks: it skips real lifecycle subprocess tests.
+With Compose running, execute native Node HTTP checks from the repository root:
 
 ```bash
-docker build -t sezzle-calculator-api:local backend
-docker run --rm --name sezzle-calculator-api \
-  -p 127.0.0.1:8080:8080 \
-  -e ALLOWED_ORIGINS=https://calculator.example \
-  sezzle-calculator-api:local
-# In another terminal:
-curl -i http://localhost:8080/health
-docker stop --time 10 sezzle-calculator-api
+node --test scripts/containers.test.mjs
+# Override the target when needed: APP_URL=http://localhost:8090 node --test scripts/containers.test.mjs
 ```
 
-The multi-stage image contains a static Go binary and a digest-pinned distroless
-non-root runtime. It has no shell or curl; check health externally through
-`GET /health`, not with `docker exec sh`. Allow more than five seconds before an
-external supervisor sends SIGKILL. Docker Compose is not required for the backend.
+Open generated HTML reports in a browser:
+**`frontend/coverage/index.html`** and **`backend/coverage/index.html`**.
+Go also generates `backend/coverage/summary.txt`. Reports are Git-ignored and
+excluded from production images. Reviewers can reproduce them using the commands
+above. Successful GitHub Actions coverage steps upload `frontend-coverage` and
+`backend-coverage` artifacts, available from the workflow run.
 
-## Current scope
+### Verified results — 2026-11-26
 
-Phase 5 connects the existing calculator and history components to the Go
-expression endpoint. All seven operations, parentheses, decimals, error recovery,
-cancellation and physical keyboard input are available. Only successful server
-results enter history; no sample history is injected.
+- Frontend: 245 tests; formatting, lint, strict types and build pass. Coverage:
+  99.66% statements, 97.95% branches, 100% functions/lines.
+- Backend: 632 leaf cases, zero failures/skips; race detector, vet, contracts and
+  build pass. Statement coverage: 98.9% overall (calculator/HTTP 100%, expression
+  99.3%, executable 90.3%). Counts exclude parent subtest aggregation.
+- Actual containers: 27 HTTP smoke cases; Chrome verified all seven operations,
+  complex expressions, Enter, error recovery, history/copy/reuse and persistence.
 
-History is newest-first, retains at most 100 entries and displays 20 at a time.
-Reuse restores an expression without evaluating it; copy uses the browser
-Clipboard API, delete removes one entry, and clearing all entries requires
-confirmation. Dates use the user's locale and time zone. History and theme
-preferences persist in versioned localStorage records for this origin. Storage
-failures produce a warning while in-memory interaction remains available.
+Environment: macOS arm64, Docker 27.4.0 / Compose 2.31.0, Linux arm64 containers,
+pinned local tools above. No performance claim or other-architecture verification.
 
-Browser history is not encrypted or synchronized between tabs/devices. Invalid
-stored data is ignored, not trusted or executed. Copy requires a supported secure
-context (HTTPS or localhost); denial or unavailability displays a manual-copy
-message. Frontend mathematical evaluation remains intentionally absent.
-Playwright, k6, Lighthouse and additional performance testing are excluded from
-the remaining roadmap, not deferred to a future delivery phase. No database,
-broker or authentication infrastructure was introduced.
+## Architecture and limitations
 
-See [requirements](docs/REQUIREMENTS.md), [architecture](docs/ARCHITECTURE.md) and
-[non-blocking review findings](docs/REVIEW.md). Assessment requirements remain
-reported rather than independently verified against the original assignment.
+React controlled components and focused hooks → native fetch → Nginx → Go HTTP
+validation → expression parser → calculator domain. Synchronous REST fits small,
+deterministic, side-effect-free calculations. Applications build independently;
+no database, broker or frontend evaluator is needed. Container base images and CI
+actions are pinned. [Architecture decisions](docs/ARCHITECTURE.md) explain details.
 
-## Remaining delivery roadmap
+- History is plaintext and per-origin, with no cross-tab/device synchronization.
+  Clipboard requires HTTPS/localhost support; failures show manual-copy guidance.
+- Authentication, rate limiting and public TLS deployment are outside this local
+  assessment scope. Digest pins do not prove vulnerability freshness or signatures.
+- Duplicate JSON member names retain the last value; see [review notes](docs/REVIEW.md).
 
-The functional integration and focused-Enter regression are complete. Verification
-uses existing unit/integration tests, quality gates and manual browser checks
-against Go. The Enter correction passed 244 frontend tests and all existing
-frontend gates; the browser returned 20 for `(2+3)×4` with different buttons focused.
-See `PROMPTS.md` for actual RED/GREEN and verification evidence.
-
-Only acceptance and explicitly authorized delivery remain for this work. No
-Playwright, k6, Lighthouse, additional performance testing or new dependency is
-planned. Commit, push and pull request creation require separate authorization.
-
-## Historical Phase 2 delivery verification
-
-These measurements describe Phase 2, not the later expression/frontend suites.
-On 2026-11-26, the final backend suite passed **394 cases** with no failures or
-skips. Fresh coverage was **98.4% overall** (executable 90.3%, calculator and HTTP
-transport 100%). Race detection, vet, build, formatting and contract checks passed.
-The command main wrapper remains outside direct test coverage; no artificial
-coverage target was used.
-
-The linux/arm64 Docker image passed actual non-root UID 65532, health, all seven
-operations, CORS and SIGTERM checks. Active requests drained successfully; a
-stalled request was forcibly closed after the shutdown deadline with exit 1.
-Verification did not include image-signature verification, vulnerability scanning,
-other runtime architectures or a remote GitHub Actions run.
+See [requirement traceability](docs/REQUIREMENTS.md) and the
+[curated AI development record](PROMPTS.md) for assessment scope, technical
+decisions and documented development corrections.

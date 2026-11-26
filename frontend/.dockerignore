@@ -1,0 +1,15 @@
+# Allow only inputs needed to build and serve the application.
+**
+!package.json
+!pnpm-lock.yaml
+!index.html
+!tsconfig*.json
+!vite.config.ts
+!vite.config.test.ts
+!nginx.conf
+!src/
+!src/**
+!public/
+!public/**
+**/.DS_Store
+**/.env*

@@ -1,0 +1,41 @@
+services:
+  backend:
+    build: ./backend
+    environment:
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:8088,http://127.0.0.1:8088}
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    stop_grace_period: 10s
+    networks: [application]
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "127.0.0.1:${APP_PORT:-8088}:8080"
+    depends_on:
+      backend:
+        condition: service_started
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      # One readiness check verifies Nginx and the shell-free Go runtime through the proxy.
+      test:
+        [
+          CMD-SHELL,
+          "wget -q -O /dev/null http://127.0.0.1:8080/healthz && wget -q -O /dev/null http://127.0.0.1:8080/health",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    stop_grace_period: 10s
+    networks: [application, web]
+
+networks:
+  application:
+    internal: true
+  web: {}

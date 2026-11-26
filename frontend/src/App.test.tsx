@@ -22,6 +22,13 @@ afterEach(() => {
 })
 
 describe('App', () => {
+  it('does not display the internal arithmetic attribution', () => {
+    render(<App />)
+    expect(
+      screen.queryByText('Evaluated by Go · IEEE 754 arithmetic'),
+    ).not.toBeInTheDocument()
+  })
+
   it('renders the calculator rather than the temporary component showcase', () => {
     render(<App />)
     expect(

@@ -26,3 +26,6 @@ backend/bin/
 
 # Package-manager local store
 .pnpm-store/
+
+# Private, unedited prompt archive retained locally for submission curation
+/.submission-private/
